@@ -1,6 +1,6 @@
 # Textbook
 
-**Textbook** is a lightweight, classic-style text editor built for the Solena desktop environment (based on FVWM).  
+**Textbook** is a lightweight, classic-style text editor built for the Yekara Desktop Interface System (based on FVWM).  
 It provides a minimal yet functional interface for editing text files, inspired by retro Unix/Motif applications.
 
 ---
