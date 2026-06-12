@@ -1,0 +1,4 @@
+AddToFunc WinShortcutHandler
++ I ThisWindow (!ToolBox) Close
+
+Key Q A 4 WinShortcutHandler

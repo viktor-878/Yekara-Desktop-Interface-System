@@ -1,0 +1,179 @@
+PipeRead "yk-applications-menu"
+
+PipeRead "readXColors"
+
+MenuStyle * MenuColorset 0, ActiveColorset 0, GreyedColorset 0, TitleColorset 2
+
+# =====================================================================
+# FVWM Default Cursor Configuration Base
+# =====================================================================
+
+# 1. Desktop Background (Root Window)
+CursorStyle root left_ptr
+
+# 2. Application Windows (Default fallback pointer)
+CursorStyle default left_ptr
+
+# 3. Window Titlebars
+CursorStyle title left_ptr
+
+# 4. Window Borders and Corners (For resizing)
+CursorStyle border fleur
+CursorStyle handle fleur
+
+# 5. Menus
+CursorStyle menu left_ptr
+
+# 6. Window Selection / Actions (e.g., when moving or closing)
+CursorStyle stroke crosshair
+CursorStyle move fleur
+CursorStyle resize fleur
+
+
+Style * TitleAtLeft, SloppyFocus
+
+Mouse 1 2 A Close
+Mouse 1 1 A Maximize
+Mouse 1 3 A Iconify
+
+AddToDecor VectorsDecor
++ BorderStyle Simple
++ TitleStyle LeftJustified Height 21 -- Raised
++ ButtonStyle All -- Raised
++ ButtonStyle 2 Vector 5 50x20@1 20x50@1 50x80@0 80x50@0 50x20@1
++ ButtonStyle 3  Vector 5 20x40@1 80x40@1 80x60@0 20x60@0 20x40@1
++ ButtonStyle 1 Vector 13 60x20@0 60x40@0 80x40@1 80x60@0 60x60@0 60x80@0 40x80@0 40x60@1 20x60@0 20x40@1 40x40@1 40x20@1 60x20@1
+
+Style * Colorset 1, HilightColorset 2, \
+        BorderColorset 3, HilightBorderColorset 4, \
+        BorderWidth 8, HandleWidth 8, \
+        FvwmBorder, FirmBorder, \
+        UseDecor VectorsDecor, MwmBorder, MwmDecor, StippledTitle, StippledIconTitle
+
+
+
+Module FvwmAnimate
+*FvwmAnimate: Effect Zoom3D
+*FvwmAnimate: Iterations 150
+
+Style * IconBox 10 10 -10 -10, IconGrid 1 1, IconFill Right Bottom
+Style * IconSize 72 72 -1 -1
+Style * IconBackgroundRelief 2
+Style * IconBackgroundPadding 2
+Style * IconBackgroundRelief 2
+
+Style * IconBackgroundColorset 2, IconTitleColorset 2
+
+
+
+
+# ------------------------------
+# BASE TRANSIENT SETUP
+# ------------------------------
+DestroyFunc FuncApplyTransientBase
+AddToFunc FuncApplyTransientBase
++ I ThisWindow (Transient) WindowStyle FixedPosition, FixedSize
++ I ThisWindow (Transient) UpdateStyles
+
+
+# ------------------------------
+# CENTER FUNCTION (single action)
+# ------------------------------
+DestroyFunc FuncCenterTransient
+AddToFunc FuncCenterTransient
++ I ThisWindow (Transient) MoveToScreenCenter
+
+
+# ------------------------------
+# EVENT MODULE
+# ------------------------------
+DestroyModuleConfig FvwmEvent-TransientFix: *
+*FvwmEvent-TransientFix: add_window FuncApplyTransientBase
+*FvwmEvent-TransientFix: configure FuncCenterTransient
+
+Style overlay !Title, !Handles, !Borders, BorderWidth 6, !Button 1, !Button 2, !Button 4, !Closable, Sticky, StickyStippledTitle, WindowListSkip, !Closable, FixedSize, !Maximizable, !iconifiable, ResizeOpaque
+
+# ------------------------------
+# START
+# ------------------------------
+AddToFunc StartFunction
++ I Module FvwmEvent FvwmEvent-TransientFix
+
+DestroyMenu IconOpsMenu
+AddToMenu IconOpsMenu
++ "Move" Move
++ "Restore" Iconify
++ "" Nop
++ "Raise" Raise
++ "Lower" Lower
++ "" Nop
++ "Close" Close
++ "Kill" Destroy
+
+AddToFunc IconHandler
++ C Raise
++ D Iconify
++ M Raise
++ M Move
+
+AddToFunc WinHandler
++ C Raise
++ C ThisWindow (ToolBox) AnimatedMove 10p -10p
++ M Raise
++ M Move
++ D ThisWindow (!ToolBox) WindowShade
+
+
+Mouse 1 I A IconHandler
+Mouse 3 I A Menu IconOpsMenu
+Mouse 1 T A WinHandler
+
+DestroyMenu WinOpsMenu
+AddToMenu WinOpsMenu
++ "Move" Move
++ "Resize" Resize
++ "Iconify" Iconify
++ "(De)Maximize" Maximize
++ "(Un)Shade" WindowShade
++ "" Nop
++ "Raise" Raise
++ "Lower" Lower
++ "" Nop
++ "Close" Close
++ "Kill" Destroy
+
+Mouse 3 2 A Menu WinOpsMenu
+
+Emulate Win
+
+Style xterm IconOverride, Icon $./images/terminal.xpm
+
+AddToFunc SuperWinControls
++ C Raise
++ M Raise
++ M Move
+
+Mouse 1 TSFW 4 SuperWinControls
+
+Style "fltk" !Title, !Borders, Sticky, StaysOnTop, WindowListSkip, NonDecor, NeverFocus
+
+Style * Lenient
+
+# 1. Force FVWM3 to ignore its own layout gravity adjustments for menus
+Style "fltk" IgnoreGravity, !Title, !Borders
+
+# 2. Prevent FVWM3 from managing the window placement of menus entirely
+Style "fltk" PositionPlacement Center, NoPpositionIndex, NoFocus
+
+# 3. Keep the menus locked to the top layer so they never drop behind the app
+Style "fltk" Layer 6, StaysOnTop, Sticky, WindowListSkip
+
+# 4. If the menus appear but instantly disappear when you click, block focus stealing:
+Style "fltk" NeverFocus, !FPFocusByProgram, !FPFocusByClick
+
+BugOpts ExplainWindowPlacement On
+BugOpts MoveToOnScreen Off
+
+Style "*" GrabFocusOff, FPReleaseFocusTransient, FPReleaseFocus, GrabFocusTransientOff
+
+DefaultIcon $./images/defaultIcon.xpm

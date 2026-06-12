@@ -1,0 +1,58 @@
+! ==========================================================
+! Yekara Default Theme
+! ==========================================================
+
+! Surface
+*background: #cdd7e3
+*foreground: #000000
+
+! Inactive Window
+Fvwm*InactWinColorsetBG: #cdd7e3
+Fvwm*InactWinColorsetFG: #000000
+! Active Window
+Fvwm*ActiveWinColorsetBG: #DDA0DD
+Fvwm*ActiveWinColorsetFG: #000000
+
+! Inactive Border
+Fvwm*InactWinBorderColorsetBG: #cdd7e3
+
+! Active Border
+Fvwm*ActiveWinBorderColorsetBG: #DDA0DD
+
+! Inactive Border
+Fvwm*InactWinBorderColorsetFG: #000000
+
+! Active Border
+Fvwm*ActiveWinBorderColorsetFG: #000000
+
+! Menu
+Fvwm*MenuInactItemColorsetBG: #cdd7e3
+Fvwm*MenuActItemColorsetBG: #DDA0DD
+
+! Menu Title
+Fvwm*MenuTitleColorsetBG: #DDA0DD
+Fvwm*MenuTitleColorsetFG: #FFFFFF
+
+! ----------------------------------------------------------
+! Cursor
+! ----------------------------------------------------------
+
+Xcursor.theme: yekara-cursors
+Xcursor.size: 24
+
+! ----------------------------------------------------------
+! Xft
+! ----------------------------------------------------------
+
+Xft.dpi: 72
+Xft.antialias: false
+Xft.hinting: true
+Xft.hintstyle: hintfull
+Xft.rgba: none
+
+*renderTable: universal
+*renderTable.universal.fontName: Adobe Helvetica
+*renderTable.universal.fontSize: 12
+*renderTable.universal.fontType: FONT_IS_XFT
+
+*highlightThickness: 0

@@ -1,0 +1,13 @@
+append_apps_path () {
+    case":$YK_APPS_PATH:" in
+	*:"$1":*)
+	    ;;
+	*)
+	    YK_APPS_PATH="${YK_APPS_PATH:+$YK_APPS_PATH:}$1"
+    esac
+}
+
+append_apps_path "/applications"
+append_apps_path "$HOME/applications"
+
+export YK_APPS_PATH

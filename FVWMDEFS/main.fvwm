@@ -1,0 +1,10 @@
+SetEnv YK_APPS_PATH /applications:~/applications
+IgnoreModifiers L2
+
+PipeRead "readXColors"
+PipeRead "yk-applications-menu"
+Exec "YKBackdrop"
+Exec xrandr --dpi 72
+Read $./components/core.fvwm
+Read $./components/toolbox.fvwm
+Read $./components/coreBindings.fvwm

@@ -1,0 +1,45 @@
+#!/usr/bin/python3
+import subprocess
+import os
+
+xrdb_file_default = os.path.expanduser("/usr/share/yekara/colors")
+xrdb_file = os.path.expanduser("~/.yekara/colors")
+
+subprocess.run(["xrdb", "-merge", xrdb_file_default], check=True)
+subprocess.run(["xrdb", "-merge", xrdb_file], check=False) # user-side file is optional
+
+
+# Query all resources
+xrdb_output = subprocess.check_output(["xrdb", "-query"], text=True)
+
+# Parse XRDB output into a dictionary
+xrdb_colors = {}
+
+for line in xrdb_output.splitlines():
+    line = line.strip()
+
+    if not line or line.startswith("!"):
+        continue
+
+    parts = line.split(None, 1)
+
+    if len(parts) == 2:
+        key, value = parts
+        key = key.rstrip(":")
+        xrdb_colors[key] = value.strip()
+
+# ----------------------------------------------------------
+# Backdrop Support
+# ----------------------------------------------------------
+bgtype = xrdb_colors.get("*YKBackdropType", "solid")
+bgcolor = xrdb_colors.get("*YKBackdropColor", "#4682B4")
+bgbitmap = xrdb_colors.get("*YKBackdropImagePath", "unset")
+
+if bgtype == "solid":
+	os.system(f"xsetroot -solid \\{bgcolor}")
+elif bgtype == "bitmap" and bgbitmap != "unset":
+	os.system(f"fvwm-root {bgbitmap}")
+else:
+	os.system(f"xsetroot -solid \\{bgcolor}")
+	
+# YAY, it worked :D

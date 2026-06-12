@@ -1,0 +1,21 @@
+PipeRead "yk-applications-menu"
+
+*ToolBox: Colorset 0
+*ToolBox: Columns 3
+*ToolBox: Frame 1
+*Toolbox: Padding 6 4
+*ToolBox: ButtonGeometry 64x21+10-10
+*ToolBox: (1x3, Swallow "wmclock" `Exec wmclock -led "#ff0067" -12`)
+*ToolBox: (2x1, Right, Icon $./images/menu_plus.png, Title (Side, Left) "Applications ", Action (Mouse 1) `Menu YKMenu rectangle $widthx$height+$left+$top +$widthp-5p +1p`)
+*ToolBox: (2x1, Title (Side, Left) "Preferences ", Action (Mouse 1) `Menu PrefsMenu rectangle $widthx$height+$left+$top +$widthp-5p +1p`)
+*ToolBox: (2x1, Right, Icon $./images/menu_plus.png, Title (Side, Left) "System ", Action (Mouse 1) `Menu SysMenu rectangle $widthx$height+$left+$top +$widthp-5p +1p`)
+*ToolBox: (3x1, Left, Swallow stalonetray `Exec stalonetray --parent-bg --icon-size 16 --icon-gravity NW`, Frame -1)
+
+AddToMenu SysMenu
++ "Logout" Exec ykSessionDiag --logout
++ "Reboot" Exec ykSessionDiag --reboot
++ "Shutdown" Exec ykSessionDiag --shutdown
+Style ToolBox !Button 1, !Button 2, !Button 3, !Button 4, !Button 5, !Button 6, !Button 7, !Button 8, !Button 9, !Button 0, FixedSize, !Maximizable, !Iconifiable, WindowListSkip, !Handles, Sticky, !Closable. !Destroyable. WindowListSkip, CirculateSkip, !Killable
+
+AddToFunc StartFunction
++ I Module FvwmButtons ToolBox
