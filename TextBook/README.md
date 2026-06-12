@@ -40,4 +40,4 @@ Make sure you have the following installed:
 Clone or download the source and run:
 
 ```bash
-gcc main.c -o textbook -lXm -lXt -lX11 -lyk
+make
