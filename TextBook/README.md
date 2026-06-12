@@ -19,14 +19,7 @@ It provides a minimal yet functional interface for editing text files, inspired 
   - `Ctrl+V` – Paste  
   - `Ctrl+A` – Select All  
 - Blocks accidental text insertion when using Ctrl+key combinations  
-- Custom XPM icon with transparency support for FVWM/Solena
-
----
-
-## Screenshots
-
-![Textbook Screenshot](screenshot.png)  
-*Replace `screenshot.png` with an actual screenshot of Textbook in action.*
+- Custom GZI icon with support for FVWM/Yekara
 
 ---
 
@@ -37,8 +30,8 @@ It provides a minimal yet functional interface for editing text files, inspired 
 Make sure you have the following installed:
 
 - X11 development libraries (`libX11-dev`)  
-- Motif development libraries (`libxm4-dev` or equivalent)  
-- XPM library (`libxpm-dev`)
+- Motif development libraries (`libxm4-dev` or equivalent)
+- libyk (libYekara) for yekara-only features, such as gzi and theming support
 
 ---
 
@@ -47,4 +40,4 @@ Make sure you have the following installed:
 Clone or download the source and run:
 
 ```bash
-gcc main.c -o textbook -lXm -lXt -lX11 -lXpm
+gcc main.c -o textbook -lXm -lXt -lX11 -lyk
