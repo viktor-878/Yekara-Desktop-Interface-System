@@ -20,7 +20,7 @@ make -lXm -lXt -lX11
 make install PREFIX="$PREFIX"
 cd ..
 
-gcc CSRC/sessionDiag.c -o "$PREFIX/bin/sessionDiag" -lXm -lXt -lX11 -lyk -larchive
+gcc CSRC/sessionDiag.c -o "$PREFIX/bin/ykSessionDialog" -lXm -lXt -lX11 -lyk -larchive
 gcc CSRC/yk-applications-menu.c -o "$PREFIX/bin/yk-applications-menu"
 
 # TextBook
