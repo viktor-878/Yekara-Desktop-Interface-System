@@ -56,3 +56,15 @@ Xft.rgba: none
 *renderTable.universal.fontType: FONT_IS_XFT
 
 *highlightThickness: 0
+! Target the menu bar widget (usually named 'menubar' or of class XmRowColumn
+*menubar.shadowThickness:  1
+*menubar*XmCascadeButton.shadowThickness: 1
+
+! 1. Tell the menu bar not to recalculate its own height
+*menubar.resizeHeight: False
+
+! 2. Force the exact pixel height
+*menubar.height: 21
+
+! 3. Force the internal buttons not to try and stretch the container
+*menubar*XmCascadeButton.resizeHeight: False
