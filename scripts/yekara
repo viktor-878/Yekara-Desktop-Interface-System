@@ -1,229 +1,218 @@
- #!/usr/bin/ksh93
+#!/usr/bin/env python3
 
+import os
+import sys
+import shutil
+import subprocess
+from pathlib import Path
 
-#
+YEKARA_VERSION = "R1 alpha"
 
-# This file is a part of the Yekara Desktop Interface System and the Not so Common Desktop Environment
 
-# Original Author: Hegel3DReloaded
-# YK Version Author: Viktor878
-# Licence: GPLv3
+def log(msg):
+    print(f"[Yekara] {msg}")
 
-#
 
+# --------------------------------------------------
+# Basic sanity check
+# --------------------------------------------------
 
-# Main starting wrapper
+HOME = os.environ.get("HOME")
 
+if not HOME:
+    print("Error: HOME not set.", file=sys.stderr)
+    sys.exit(2)
 
-# Basic sanity check.
+# --------------------------------------------------
+# Version arguments
+# --------------------------------------------------
 
-if [ -z $HOME ]; then
+if len(sys.argv) > 1:
+    if sys.argv[1] == "-V":
+        print(f"Yekara Desktop Interface System Version {YEKARA_VERSION}")
+        sys.exit(0)
 
-   echo "Error: HOME not set." >&2
+    if sys.argv[1] == "-v":
+        print(YEKARA_VERSION)
+        sys.exit(0)
 
-   exit 2
+FVWM_OPTS = sys.argv[1:]
 
-else
+# --------------------------------------------------
+# DPI Detection
+# --------------------------------------------------
 
-   export YEKARA_VERSION="R1 alpha"
+try:
+    xdpyinfo = subprocess.run(
+        ["xdpyinfo"],
+        capture_output=True,
+        text=True,
+        check=True
+    )
 
-fi
+    DPI = "72"
 
+    for line in xdpyinfo.stdout.splitlines():
+        if "resolution:" in line:
+            for token in line.split():
+                if "x" in token:
+                    DPI = token.split("x")[-1]
+                    break
 
-# Either print version and exit, or construct main options for and output
+    log(f"DPI detected: {DPI}")
 
-if [ "$1" == "-V" ]; then
+except Exception as e:
+    DPI = "72"
+    log(f"DPI detection failed, using {DPI}: {e}")
 
-   echo "Yekara Version $YEKARA_VERSION"
+os.environ["DPI"] = DPI
 
-   exit 0
+# --------------------------------------------------
+# Core Environment
+# --------------------------------------------------
 
-elif [ "$1" == "-v" ]; then
+os.environ["YEKARA_VERSION"] = YEKARA_VERSION
+os.environ["YEKARA_OS"] = os.uname().sysname
 
-   echo "$YEKARA_VERSION"
+os.environ["YEKARA_ROOT"] = "/usr/share"
+os.environ["YEKARA_DATADIR"] = "/usr/share/yekara"
+os.environ["YEKARA_LIBDIR"] = "/usr/local/lib/yekara"
+os.environ["YEKARA_TOOLSDIR"] = "/usr/local/libexec/yekara"
 
-   exit 0
+os.environ["FVWM_DATADIR"] = "/usr/share/yekara"
+os.environ["FVWM_USERDIR"] = f"{HOME}/.yekara"
 
-else
+os.environ["QT_QPA_PLATFORMTHEME"] = "qt6ct"
 
-   export FVWM_OPTS="$@"
+FVWM_USERDIR = Path(os.environ["FVWM_USERDIR"])
+FVWM_DATADIR = Path(os.environ["FVWM_DATADIR"])
 
-   exec 2>&1
+(FVWM_USERDIR / "tmp").mkdir(
+    parents=True,
+    exist_ok=True
+)
 
-   # exec 1>> "$HOME"/.xsession-errors
+# --------------------------------------------------
+# Ensure /usr/local/bin exists in PATH
+# --------------------------------------------------
 
-fi
+path = os.environ.get("PATH", "")
 
+if "/usr/local/bin" not in path.split(":"):
+    os.environ["PATH"] = path + ":/usr/local/bin"
 
-# Find out which DPI we are using.
+# --------------------------------------------------
+# Locate FVWM
+# --------------------------------------------------
 
-DpiInfo=$(LC_ALL=C xdpyinfo | grep -E 'resolution:.*dots per inch' | awk '{ print $2 }')
+FVWM_BIN = os.environ.get("FVWM_BIN")
 
-echo "${DpiInfo}" | grep -E -q "^[[:digit:]]+x[[:digit:]]+$"
+if not FVWM_BIN:
+    for candidate in ("fvwm3", "fvwm2", "fvwm"):
+        found = shutil.which(candidate)
 
-if (($? == 0)); then
+        if found:
+            FVWM_BIN = found
+            break
 
-   export DPI="${DpiInfo##*x}"
+if not FVWM_BIN:
+    print(
+        "Error: could not find fvwm3, fvwm2 or fvwm",
+        file=sys.stderr
+    )
+    sys.exit(3)
 
-else
+log(f"Found FVWM: {FVWM_BIN}")
 
-   echo "Warning: DPI \"$DPI\" is not recognized as X DPI specification. Setting DPI to 96"
+# --------------------------------------------------
+# Xdefaults
+# --------------------------------------------------
 
-   export DPI=96
+xdefaults = FVWM_USERDIR / "Xdefaults"
 
-fi
+if xdefaults.is_file():
 
+    xrdb = shutil.which("xrdb")
+    cpp = shutil.which("cpp")
 
-# Set main yekara and FVWM variables. Most of the things later depends
+    if xrdb and cpp:
 
-# on this core variables.
+        log("Loading Xdefaults")
 
-# FVWM_DATADIR will be undefined briefly when fvwm starts, but
+        subprocess.run(
+            [xrdb, "-remove"],
+            check=False
+        )
 
-# it will be set again to YEKARA value from Main.fvwmconf.
+        with open(xdefaults, "r") as fp:
+            subprocess.run(
+                [xrdb, "-cpp", cpp],
+                stdin=fp,
+                check=False
+            )
 
-export YEKARA_OS=$(uname -s)
+    else:
+        log("xrdb or cpp not found")
 
-export YEKARA_ROOT=/usr/local
+else:
+    log("No Xdefaults file")
 
-export YEKARA_DATADIR=/usr/share/yekara
+# --------------------------------------------------
+# app-defaults
+# --------------------------------------------------
 
-export YEKARA_LIBDIR=/usr/local/lib/yekara
+app_defaults = FVWM_USERDIR / "app-defaults"
 
-export YEKARA_TOOLSDIR=/usr/local/libexec/yekara
+if app_defaults.is_dir():
+    os.environ["XAPPLRESDIR"] = str(app_defaults)
+    log("Using app-defaults directory")
 
-export FVWM_DATADIR="/usr/share/yekara"
+# --------------------------------------------------
+# Optional Xset.conf
+# --------------------------------------------------
 
-export FVWM_USERDIR="${HOME}/.yekara"
+xset_conf = FVWM_USERDIR / "Xset.conf"
 
-export QT_QPA_PLATFORMTHEME=qt6ct
+if xset_conf.exists():
+    log(
+        "Xset.conf exists "
+        "(shell execution not implemented yet)"
+    )
 
+# --------------------------------------------------
+# Config Selection
+# --------------------------------------------------
 
-mkdir -p "${FVWM_USERDIR}/tmp"
+user_main = FVWM_USERDIR / "main.fvwm"
+system_main = FVWM_DATADIR / "main.fvwm"
 
+if user_main.is_file():
+    config = user_main
+else:
+    config = system_main
 
-echo "$PATH" | grep -E -q "/usr/local/bin"
+if not config.is_file():
+    print(
+        f"Error: config file not found: {config}",
+        file=sys.stderr
+    )
+    sys.exit(4)
 
-if (($? != 0)); then
+log(f"Using config: {config}")
 
-   export PATH="${PATH}:/usr/local/bin"
+# --------------------------------------------------
+# Launch FVWM
+# --------------------------------------------------
 
-fi
+cmd = [
+    FVWM_BIN,
+    "-f",
+    str(config)
+]
 
+cmd.extend(FVWM_OPTS)
 
-# Find fvwm(1) binary. This is a critical point.
+log("Launching FVWM...")
+log("Command: " + " ".join(cmd))
 
-# We cannot continue without main workforce.
-
-if [ "x$FVWM_BIN" == "x" ]; then
-
-   for fvwmname in fvwm3 fvwm2 fvwm
-
-   do
-
-      FVWM_BIN=$(whence -p $fvwmname)
-
-      if (($? == 0)); then
-
-         break
-
-      fi
-
-   done
-
-fi
-
-if [ "x$FVWM_BIN" == "x" ]; then
-
-   echo "Error: cannot detect niether fvwm, fvwm2 nor fvwm3 in $PATH and"
-
-   echo "environment variable FVWM_BIN is not set. Exiting."
-
-   exit 3
-
-fi
-
-
-# Handle our X defaults if it exists.
-
-if [ -r "${FVWM_USERDIR}/Xdefaults" ]; then
-
-   cd $HOME
-
-   whence -qp xrdb cpp
-
-   if (($? == 0)); then
-
-      xrdb -remove && xrdb -cpp /usr/bin/cpp < ${FVWM_USERDIR}/Xdefaults
-
-   else
-
-      echo "Warning: cannot find xrdb or cpp in ${PATH}, ${FVWM_USERDIR}/Xdefaults will not be processed"
-
-   fi
-
-else
-
-   echo "Warning: cannot read ${FVWM_USERDIR}/Xdefaults file"
-
-fi
-
-
-# Handle our app-defaults dir if it exists.
-
-if [ -d "${FVWM_USERDIR}/app-defaults" ]; then
-
-   export XAPPLRESDIR="${FVWM_USERDIR}/app-defaults"
-
-else
-
-   echo "Warning: cannot find ${FVWM_USERDIR}/app-defaults directory"
-
-fi
-
-
-# Set xset(1), setxkbmap(1), xgamma(1), xmodmap(1) and such things from
-
-# Xset.conf if it exists.
-
-if [ -r "${FVWM_USERDIR}/Xset.conf" ]; then
-
-   . "${FVWM_USERDIR}/Xset.conf"
-
-else
-
-   echo "Notice: ${FVWM_USERDIR}/Xset.conf does not exist"
-
-fi
-
-
-# Early user customizations if needed can be set here.
-
-if [ -x "${FVWM_USERDIR}/libexec/pre_start.sh" ]; then
-
-   . "${FVWM_USERDIR}/libexec/pre_start.sh"
-
-fi
-
-
-# Now exec fvwm. Forking Main.fvwmconf should be a rare case,
-
-# but we never know. From Main everything else is read.
-
-if [ -r ${FVWM_USERDIR}/Main.fvwmconf ]; then
-
-   exec $FVWM_BIN -f ${FVWM_USERDIR}/main.fvwm $FVWM_OPTS
-
-else
-
-   exec $FVWM_BIN -f ${FVWM_DATADIR}/main.fvwm $FVWM_OPTS
-
-fi
-
-
-# Do not be picky if there is some failure left.
-
-# Do the best effort and exit always with 0.
-
-exit 0
-
+os.execv(FVWM_BIN, cmd)
