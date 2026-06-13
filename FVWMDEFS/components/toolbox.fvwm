@@ -12,9 +12,9 @@ PipeRead "yk-applications-menu"
 *ToolBox: (3x1, Left, Swallow stalonetray `Exec stalonetray --parent-bg --icon-size 16 --icon-gravity NW`, Frame -1)
 
 AddToMenu SysMenu
-+ "Logout" Exec ykSessionDiag --logout
-+ "Reboot" Exec ykSessionDiag --reboot
-+ "Shutdown" Exec ykSessionDiag --shutdown
++ "Logout" Exec ykSessionDialog --logout
++ "Reboot" Exec ykSessionDialog --reboot
++ "Shutdown" Exec ykSessionDialog --shutdown
 Style ToolBox !Button 1, !Button 2, !Button 3, !Button 4, !Button 5, !Button 6, !Button 7, !Button 8, !Button 9, !Button 0, FixedSize, !Maximizable, !Iconifiable, WindowListSkip, !Handles, Sticky, !Closable. !Destroyable. WindowListSkip, CirculateSkip, !Killable
 
 AddToFunc StartFunction
