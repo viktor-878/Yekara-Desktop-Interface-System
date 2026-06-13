@@ -9,7 +9,7 @@ AddToMenu YKRootMenu
 + "Debug Menu" Popup DebugMenu
 + "" Nop
 + "Restart Workspace Manager" Restart
-+ "logout..." Exec ykSessionDiag --logout
++ "logout..." Exec ykSessionDialog --logout
 
 Mouse 1 R A Menu YKRootMenu
 
