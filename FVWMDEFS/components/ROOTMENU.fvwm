@@ -1,0 +1,15 @@
+PipeRead fvwm-menu-desktop
+
+AddToMenu DebugMenu
++ "Applications" Popup XDGMenu
+
+AddToMenu YKRootMenu
++ "Workspace Menu" Nop
++ "" Nop
++ "Debug Menu" Popup DebugMenu
++ "" Nop
++ "Restart Workspace Manager" Restart
++ "logout..." Exec ykSessionDiag --logout
+
+Mouse 1 R A Menu YKRootMenu
+
