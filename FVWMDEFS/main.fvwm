@@ -10,4 +10,5 @@ Read $./components/toolbox.fvwm
 Read $./components/coreBindings.fvwm
 Read $./components/ROOTMENU.fvwm
 
-Exec mpv --no-video $./startup.wav
+AddToFunc StartFunction
++ I Exec mpv --no-video $./startup.wav
