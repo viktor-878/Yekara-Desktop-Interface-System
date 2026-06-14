@@ -9,3 +9,5 @@ Read $./components/core.fvwm
 Read $./components/toolbox.fvwm
 Read $./components/coreBindings.fvwm
 Read $./components/ROOTMENU.fvwm
+
+Exec mpv --no-video $./startup.wav
