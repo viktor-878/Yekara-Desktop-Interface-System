@@ -47,7 +47,6 @@ AddToDecor VectorsDecor
 Style * Colorset 1, HilightColorset 2, \
         BorderColorset 3, HilightBorderColorset 4, \
         BorderWidth 8, HandleWidth 8, \
-        FvwmBorder, FirmBorder, \
         UseDecor VectorsDecor, MwmBorder, MwmDecor, StippledTitle, StippledIconTitle
 
 
