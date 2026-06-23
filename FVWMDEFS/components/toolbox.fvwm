@@ -5,7 +5,7 @@ PipeRead "yk-applications-menu"
 *ToolBox: Frame 1
 *Toolbox: Padding 6 4
 *ToolBox: ButtonGeometry 64x21+10-10
-*ToolBox: (1x3, Swallow "wmclock" `Exec wmclock -led "#ff0067" -12`)
+*ToolBox: (1x3, Swallow "ykclock" `Exec ykclock -led "#ff0067" -12`)
 *ToolBox: (2x1, Right, Icon $./images/menu_plus.png, Title (Side, Left) "Applications ", Action (Mouse 1) `Menu YKMenu rectangle $widthx$height+$left+$top +$widthp-5p +1p`)
 *ToolBox: (2x1, Title (Side, Left) "Preferences ", Action (Mouse 1) `Menu PrefsMenu rectangle $widthx$height+$left+$top +$widthp-5p +1p`)
 *ToolBox: (2x1, Right, Icon $./images/menu_plus.png, Title (Side, Left) "System ", Action (Mouse 1) `Menu SysMenu rectangle $widthx$height+$left+$top +$widthp-5p +1p`)

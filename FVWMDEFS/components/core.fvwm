@@ -157,7 +157,7 @@ Mouse 1 TSFW 4 SuperWinControls
 
 Style "fltk" !Title, !Borders, Sticky, StaysOnTop, WindowListSkip, NonDecor, NeverFocus
 
-Style * Lenient
+Style * Lenience
 
 # 1. Force FVWM3 to ignore its own layout gravity adjustments for menus
 Style "fltk" IgnoreGravity, !Title, !Borders
