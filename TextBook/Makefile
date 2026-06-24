@@ -37,6 +37,9 @@ $(GZI_ICON):
 	mkdir -p $(RESOURCES_DIR)
 	tar -czf $(GZI_ICON) -C icons $(ICON_NAME)
 
+install:
+	mkdir /applications
+	mv TextBook.sapp /applications/TextBook.sapp
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@

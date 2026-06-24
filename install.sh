@@ -28,13 +28,12 @@ cd ykclock
 make
 make install PREFIX=/usr
 
-
 # TextBook
-cd TextBook
-make -lXm -lXt -lX11 -lyk
+make
 install -d "/applications"
-rm -rf /applications/TextBook.deskapp
-cp -r ./TextBook.deskapp "/applications/"
+install -d "/applications/TextBook.deskapp"
+# cp -r TextBook.deskapp/* "/applications/TextBook.deskapp"
+make install
 cd ..
 
 # FVWM configuration
