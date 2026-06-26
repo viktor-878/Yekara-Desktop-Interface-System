@@ -5,7 +5,7 @@
 int main(int argc, char **argv)
 {
     if (argc < 2) {
-        fprintf(stderr, "Usage: %s AppName[.sapp] [args...]\n", argv[0]);
+        fprintf(stderr, "Usage: %s AppName[.deskapp] [args...]\n", argv[0]);
         return 1;
     }
 

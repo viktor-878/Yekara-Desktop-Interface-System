@@ -27,12 +27,14 @@ cd ykclock
 ./configure
 make
 make install PREFIX=/usr
+cd ..
 
 # TextBook
+cd TextBook
 make
 install -d "/applications"
 install -d "/applications/TextBook.deskapp"
-# cp -r TextBook.deskapp/* "/applications/TextBook.deskapp"
+cp -r TextBook.deskapp/* "/applications/TextBook.deskapp"
 make install
 cd ..
 

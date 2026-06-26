@@ -137,7 +137,7 @@ int yk_parse(const char *bundle_path, ykApp *app) {
     snprintf(app->exec_path, PATH_MAX_LEN, "%s/%s", bundle_path, exec_file);
 
     if (strlen(icon_file) > 0) {
-        snprintf(app->icon_path, PATH_MAX_LEN, "%s/resources/%s.xpm", bundle_path, icon_file);
+        snprintf(app->icon_path, PATH_MAX_LEN, "%s/resources/%s.gzi", bundle_path, icon_file);
     } else {
         app->icon_path[0] = '\0';
     }

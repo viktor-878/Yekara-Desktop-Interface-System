@@ -78,7 +78,7 @@ static GZI_Meta parse_meta_sections(char *data) {
         }
         else if(strncmp(line, "width=", 6) == 0) current.width = atoi(line + 6);
         else if(strncmp(line, "height=", 7) == 0) current.height = atoi(line + 7);
-        else if(strncmp(line, "palette=", 8) == 0) snprintf(current.palette_file, sizeof(current.palette_file), "%s.spal", line + 8); // palette file name
+        else if(strncmp(line, "palette=", 8) == 0) snprintf(current.palette_file, sizeof(current.palette_file), "%s.opal", line + 8); // palette file name
         else if(strncmp(line, "name=", 5) == 0) snprintf(current.pxmap_file, sizeof(current.pxmap_file), "%s.pxmap", line + 5); // pxmap file name
 
         line = strtok(NULL, "\n");

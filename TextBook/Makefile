@@ -38,8 +38,9 @@ $(GZI_ICON):
 	tar -czf $(GZI_ICON) -C icons $(ICON_NAME)
 
 install:
+	$(GZI_ICON) $(TARGET)
 	mkdir /applications
-	mv TextBook.sapp /applications/TextBook.sapp
+	cp -r ./TextBook.deskapp /applications/TextBook.deskapp
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
