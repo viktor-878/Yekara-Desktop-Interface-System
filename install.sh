@@ -41,10 +41,11 @@ install -d "$PREFIX/share/yekara"
 cp -r FVWMDEFS/* "$PREFIX/share/yekara"
 
 # cursors
+rm -rf "$PREFIX/share/icons/yekara-cursors"
 install -d "$PREFIX/share/icons/yekara-cursors"
 cd yekara-cursor
 ./finish.sh
 cd ..
-cp -r yekara-cursor/build/* "$PREFIX/share/icons/"
+mv yekara-cursor/build/* "$PREFIX/share/icons/"
 
 echo "Done."
