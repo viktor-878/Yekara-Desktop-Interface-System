@@ -33,7 +33,7 @@ static void scan_dir_recursive(const char *dir_path, ykApp apps[], int *count)
 
             size_t len = strlen(entry->d_name);
 
-            if (len > 5 && strcmp(entry->d_name + len - 8, ".deskapp") == 0) {
+            if (len > 8 && strcmp(entry->d_name + len - 8, ".deskapp") == 0) {
                 if (yk_parse(full_path, &apps[*count]) == 0) {
                     (*count)++;
                 }
