@@ -1,5 +1,5 @@
 SetEnv YK_APPS_PATH /applications:~/applications
-IgnoreModifiers L2
+IgnoreModifiers L25
 
 PipeRead "readXColors"
 PipeRead "yk-applications-menu"

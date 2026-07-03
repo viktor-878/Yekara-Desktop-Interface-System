@@ -75,6 +75,7 @@
 #define MONTH_X_POS		10
 #define MONTH_Y_POS		3
 #define MONTH_X_OFFSET		0
+#define MONTH_Y_OFFSET		1
 #define MONTH_WIDTH		26
 #define MONTH_HEIGHT		6
 
@@ -89,8 +90,9 @@
 #define WEEKDAY_X_POS		6
 #define WEEKDAY_Y_POS		1
 #define WEEKDAY_X_OFFSET	0
-#define WEEKDAY_WIDTH		21
-#define WEEKDAY_HEIGHT		6
+#define WEEKDAY_Y_OFFSET	0
+#define WEEKDAY_WIDTH		20
+#define WEEKDAY_HEIGHT		7
 
 #define OUR_WINDOW_EVENTS	(ExposureMask | ButtonPressMask | StructureNotifyMask)
 
@@ -141,12 +143,12 @@ char* extractProgName(char *);
 int processArgs(int, char **);
 
 /**********************************************************************/
-int enable12HourClock = 0;	/* default value is 24h format */
+int enable12HourClock = 1;	/* default value is 24h format */
 int enableShapedWindow = 1;	/* default value is noshape */
 int enableBlinking = 1;		/* default is blinking */
-int startIconified = 0;		/* default is not iconified */
+int startIconified = 1;		/* default is not iconified */
 int enableYearDisplay = 0;	/* default is to show time, not year */
-unsigned int blinkInterval = 1;          /* default is a 2-second blink cycle */
+unsigned int blinkInterval = 2;          /* default is a 2-second blink cycle */
 
 int timePos12[NUM_TIME_POSITIONS]  = { 5, 14, 24, 28, 37 };
 int timePos24[NUM_TIME_POSITIONS]  = { 4,  8, 17, 22, 31 };
@@ -178,7 +180,7 @@ Window     iconWin, win;
 char *progName;
 char *className = "YKClock";
 char *geometry = "";
-char *ledColor = "LightSeaGreen";
+char *ledColor = "Red";
 
 char *commandToExec = NULL;
 char *commandBuf = NULL;
@@ -609,7 +611,7 @@ void showTime(void)
 
    /* Monat */
    xOffset = MONTH_X_OFFSET;
-   yOffset = MONTH_HEIGHT * (localTime->tm_mon);
+   yOffset = MONTH_HEIGHT * (localTime->tm_mon) + MONTH_Y_OFFSET;
    XCopyArea(dpy, months.pixmap, visible.pixmap, normalGC,
 	     xOffset, yOffset, MONTH_WIDTH, MONTH_HEIGHT,
 	     xPos[MONTH_X_POS], yPos[MONTH_Y_POS]);
@@ -639,7 +641,7 @@ void showTime(void)
    xOffset = WEEKDAY_X_OFFSET;
    yOffset = WEEKDAY_HEIGHT * ((localTime->tm_wday + 6) % 7);
    XCopyArea(dpy, weekdays.pixmap, visible.pixmap, normalGC,
-	     xOffset, yOffset, WEEKDAY_WIDTH, WEEKDAY_HEIGHT,
+	     xOffset, yOffset  + WEEKDAY_Y_OFFSET, WEEKDAY_WIDTH, WEEKDAY_HEIGHT,
 	     xPos[WEEKDAY_X_POS], yPos[WEEKDAY_Y_POS]);
 
    if ((!enableBlinking) && (!enableYearDisplay))
