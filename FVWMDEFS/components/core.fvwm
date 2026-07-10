@@ -53,7 +53,7 @@ Style * Colorset 1, HilightColorset 2, \
 
 Module FvwmAnimate
 *FvwmAnimate: Effect Zoom3D
-*FvwmAnimate: Iterations 150
+*FvwmAnimate: Iterations 60
 
 Style * IconBox 10 10 -10 -10, IconGrid 1 1, IconFill Right Bottom
 Style * IconSize 72 72 -1 -1
@@ -122,7 +122,6 @@ AddToFunc WinHandler
 + M Move
 + D ThisWindow (!ToolBox) WindowShade
 
-
 Mouse 1 I A IconHandler
 Mouse 3 I A Menu IconOpsMenu
 Mouse 1 T A WinHandler
@@ -154,25 +153,7 @@ AddToFunc SuperWinControls
 
 Mouse 1 TSFW 4 SuperWinControls
 
-Style "fltk" !Title, !Borders, Sticky, StaysOnTop, WindowListSkip, NonDecor, NeverFocus
-
-Style * Lenience
-
-# 1. Force FVWM3 to ignore its own layout gravity adjustments for menus
-Style "fltk" IgnoreGravity, !Title, !Borders
-
-# 2. Prevent FVWM3 from managing the window placement of menus entirely
-Style "fltk" PositionPlacement Center, NoPpositionIndex, NoFocus
-
-# 3. Keep the menus locked to the top layer so they never drop behind the app
-Style "fltk" Layer 6, StaysOnTop, Sticky, WindowListSkip
-
-# 4. If the menus appear but instantly disappear when you click, block focus stealing:
-Style "fltk" NeverFocus, !FPFocusByProgram, !FPFocusByClick
-
-BugOpts ExplainWindowPlacement On
-BugOpts MoveToOnScreen Off
-
-Style "*" GrabFocusOff, FPReleaseFocusTransient, FPReleaseFocus, GrabFocusTransientOff
+# just to be sure
+Style * Lenience, Lenient
 
 DefaultIcon $./images/defaultIcon.xpm
