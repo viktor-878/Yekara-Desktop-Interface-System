@@ -72,60 +72,34 @@ fvwm_colors = {
 }
 
 # ----------------------------------------------------------
-# Render Table Support
+# Render Table Support -- Changing to YKFont Especification (based on XLFD)
 # ----------------------------------------------------------
 
-render_table = xrdb_colors.get("*renderTable", "universal")
+font_preference = xrdb_colors.get("Yekara*Font", "helvetica, 12")
 
-font_prefix = f"*renderTable.{render_table}."
-
-font_name = xrdb_colors.get(
-    f"{font_prefix}fontName",
-    "Ubuntu"
-)
-
-try:
-    font_size = int(
-        xrdb_colors.get(
-            f"{font_prefix}fontSize",
-            "12"
-        )
-    )
-except ValueError:
-    font_size = 12
-
-font_type = xrdb_colors.get(
-    f"{font_prefix}fontType",
-    "FONT_IS_XFT"
-)
-
-xft_antialias = xrdb_colors.get(
-    "Xft.antialias",
-    "false"
-).lower()
-
-if font_type == "FONT_IS_XFT":
-    default_font = (
-        f'DefaultFont '
-        f'"xft:{font_name}:size={font_size}:'
-        f'antialias={xft_antialias}"'
-    )
-
-    toolbox_font = (
-        f'*ToolBox: Font '
-        f'"xft:{font_name}:size={font_size}:'
-        f'antialias={xft_antialias}"'
-    )
-
-    title_font = (
-        f'Style * Font '
-        f'"xft:{font_name}:Bold:Oblique:size={font_size + 2}:'
-        f'antialias={xft_antialias}"'
-    )
+if "," in font_preference:
+    # Split strictly by the comma delimiter, then strip edge whitespaces safely
+    font_name, font_size_str = font_preference.split(",", 1)
+    font_name = font_name.strip()
+    font_size = int(font_size_str.strip())
 else:
-    default_font = f'DefaultFont "{font_name}"'
-    toolbox_font = f'*ToolBox: Font "{font_name}"'
-    title_font = f'Style * Font "{font_name}"'
+    # Fallback default if someone misses a comma completely
+    font_name = font_preference.strip()
+    font_size = 12
+default_font = (
+    f'DefaultFont '
+    f'"xft:{font_name}:size={font_size}:antialias=false*"'
+)
+
+toolbox_font = (
+    f'*ToolBox: Font '
+    f'"xft:{font_name}:size={font_size}:antialias=false"'
+)
+
+title_font = (
+    f'Style * Font '
+    f'"xft:{font_name}:Bold:Oblique:size={font_size + 2}:antialias=false"'
+)	
 
 # ----------------------------------------------------------
 # Color Helpers

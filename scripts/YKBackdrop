@@ -31,9 +31,9 @@ for line in xrdb_output.splitlines():
 # ----------------------------------------------------------
 # Backdrop Support
 # ----------------------------------------------------------
-bgtype = xrdb_colors.get("*YKBackdropType", "solid")
-bgcolor = xrdb_colors.get("*YKBackdropColor", "#4682B4")
-bgbitmap = xrdb_colors.get("*YKBackdropImagePath", "unset")
+bgtype = xrdb_colors.get("Yekara*BackdropType", "solid")
+bgcolor = xrdb_colors.get("Yekara*BackdropColor", "#4682B4")
+bgbitmap = xrdb_colors.get("Yekara*BackdropImagePath", "unset")
 
 if bgtype == "solid":
 	os.system(f"xsetroot -solid \\{bgcolor}")

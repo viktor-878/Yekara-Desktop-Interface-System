@@ -41,19 +41,10 @@ Xcursor.theme: yekara-cursors
 Xcursor.size: 24
 
 ! ----------------------------------------------------------
-! Xft
+! YKFont
 ! ----------------------------------------------------------
 
-Xft.dpi: 72
-Xft.antialias: false
-Xft.hinting: true
-Xft.hintstyle: hintfull
-Xft.rgba: none
-
-*renderTable: universal
-*renderTable.universal.fontName: Adobe Helvetica
-*renderTable.universal.fontSize: 12
-*renderTable.universal.fontType: FONT_IS_XFT
+Yekara*Font: helvetica, 12
 
 *highlightThickness: 0
 ! Target the menu bar widget (usually named 'menubar' or of class XmRowColumn

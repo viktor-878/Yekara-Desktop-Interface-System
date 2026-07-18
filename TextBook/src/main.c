@@ -18,8 +18,6 @@
 #include <libgen.h>
 #include <string.h>
 #include <limits.h>
-#include <locale.h>   // ✅ IMPORTANT
-
 
 Widget text_w;
 
@@ -33,7 +31,7 @@ void save_callback(Widget w, XtPointer client_data, XtPointer call_data) {
 
             FILE *fp = fopen(filename, "w");
             if (fp) {
-                char *content = XmTextGetString(text_w); // UTF-8 buffer
+                char *content = XmTextGetString(text_w);
                 fwrite(content, 1, strlen(content), fp);
                 XtFree(content);
                 fclose(fp);
@@ -62,7 +60,7 @@ void open_callback(Widget w, XtPointer client_data, XtPointer call_data) {
                 fread(buffer, 1, size, fp);
                 buffer[size] = '\0';
 
-                XmTextSetString(text_w, buffer); // UTF-8 safe
+                XmTextSetString(text_w, buffer);
                 free(buffer);
                 fclose(fp);
             }
@@ -106,11 +104,8 @@ void edit_menu_callback(Widget w, XtPointer client_data, XtPointer call_data) {
     }
 }
 
-/* ⚠️ REMOVED: verify_callback blocking Ctrl combos (breaks UTF input) */
-
 /* ---------------- Icon Loader ---------------- */
 static int load_bundle_icon(Widget toplevel, char *argv0) {
-
     yk_set_argv0(argv0);
 
     GZI_Image *img = gzi_load(yk_get_current_bundle_icon(), "textbook_xpm");
@@ -161,11 +156,6 @@ static int load_bundle_icon(Widget toplevel, char *argv0) {
 
 /* ---------------- Main ---------------- */
 int main(int argc, char **argv) {
-
-    /* ✅ CRITICAL: enable UTF-8 */
-    setlocale(LC_ALL, "");
-    XtSetLanguageProc(NULL, NULL, NULL);
-
     XtAppContext app;
     Widget toplevel, form, menubar;
     Widget file_menu, edit_menu, file_cascade, edit_cascade, scrolled_w;
@@ -174,6 +164,12 @@ int main(int argc, char **argv) {
 
     toplevel = XtVaAppInitialize(&app, "XmTextEditor", NULL, 0, &argc, argv, NULL, NULL);
     XtVaSetValues(toplevel, XmNwidth, 720, XmNheight, 480, NULL);
+
+    /* Only wires up the reload atom + event handler at this point --
+       the widget tree doesn't exist yet, so a reload here would have
+       nothing to walk. The actual theme apply happens further down,
+       once the whole UI has been built. */
+    YkResourceSysInit(toplevel);
 
     form = XtVaCreateManagedWidget("form", xmFormWidgetClass, toplevel, NULL);
 
@@ -234,12 +230,12 @@ int main(int argc, char **argv) {
                   XmNbottomAttachment, XmATTACH_FORM,
                   XmNscrollBarDisplayPolicy, XmSTATIC,
                   NULL);
-    YkResourceSysInit(toplevel);
+
     text_w = XmCreateText(scrolled_w, "text_w", NULL, 0);
     XtVaSetValues(text_w,
                   XmNeditMode, XmMULTI_LINE_EDIT,
                   XmNbackground, WhitePixelOfScreen(XtScreen(toplevel)),
-		  XmNuserData, YK_SKIP_THEME_FLAG,
+                  XmNuserData, YK_SKIP_THEME_FLAG,
                   NULL);
 
     XtManageChild(text_w);
@@ -256,8 +252,15 @@ int main(int argc, char **argv) {
 
     if (!load_bundle_icon(toplevel, argv[0]))
         fprintf(stderr, "icon load failed\n");
-    
+
     XtRealizeWidget(toplevel);
+
+    /* Hook into theme service after building the UI layout: the full
+       widget tree (form, menubar, both pulldown menus, scrolled window,
+       text widget) now exists, so this is the first point at which a
+       tree walk actually finds anything to theme. */
+    YkReloadResources(toplevel);
+
     XtAppMainLoop(app);
 
     return 0;

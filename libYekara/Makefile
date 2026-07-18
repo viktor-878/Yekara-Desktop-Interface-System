@@ -1,5 +1,5 @@
 CC      = gcc
-CFLAGS  = -Wall -Wextra -O2 -fPIC -larchive -lXm -lXt -lX11
+CFLAGS  = -Wall -Wextra -O2 -fPIC -larchive -lXm -lXt -lX11 -DYK_DEBUG_RENDERTABLE
 LDFLAGS =
 
 PREFIX ?= /usr
