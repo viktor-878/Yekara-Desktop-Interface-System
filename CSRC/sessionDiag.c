@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <unistd.h>    
 #include <math.h>
+#include <yk/style.h>
 
 /* Structure to hold our mode-specific data */
 typedef struct {
@@ -60,13 +61,14 @@ int main(int argc, char **argv) {
             current_action.command = "systemctl poweroff";
         }
     }
-
     /* 2. INITIALIZE TOOLKIT */
     toplevel = XtVaAppInitialize(&app, "YekaraSession", NULL, 0, &argc, argv, NULL, NULL);
     dpy = XtDisplay(toplevel);
     screen = DefaultScreen(dpy);
     screen_width  = DisplayWidth(dpy, screen);
     screen_height = DisplayHeight(dpy, screen);
+
+    YkResourceSysInit(toplevel);
 
     /* 3. CAPTURE BASE SCREENSHOT */
     XImage *base_shot = XGetImage(dpy, RootWindow(dpy, screen), 0, 0, 
@@ -80,7 +82,6 @@ int main(int argc, char **argv) {
     XtSetArg(args[n], XmNx, 0); n++;
     XtSetArg(args[n], XmNy, 0); n++;
     overlay = XtAppCreateShell("overlay", "Overlay", topLevelShellWidgetClass, dpy, args, n);
-
     /* 5. THE DIALOG */
     XmString msg = XmStringCreateLocalized(current_action.label);
     n = 0;
@@ -95,6 +96,7 @@ int main(int argc, char **argv) {
 
     /* 6. REALIZE & RUN ANIMATION LOOP */
     XtRealizeWidget(overlay);
+    YkResourceSysInit(overlay);
     Window ov_win = XtWindow(overlay);
 
     Pixmap bg_pix = XCreatePixmap(dpy, ov_win, screen_width, screen_height, DefaultDepth(dpy, screen));
@@ -104,9 +106,11 @@ int main(int argc, char **argv) {
     int total_steps = 25; 
     int total_distance = screen_height + fade_band_height;
 
-    for (int step = 0; step <= total_steps; step++) {
-        XImage *frame = XSubImage(base_shot, 0, 0, screen_width, screen_height);
+    XImage *frame = XCreateImage(dpy, DefaultVisual(dpy, screen), DefaultDepth(dpy, screen), ZPixmap, 0, malloc(base_shot->bytes_per_line * screen_height), screen_width, screen_height, 32, 0);
 
+    for (int step = 0; step <= total_steps; step++) {
+        memcpy(frame->data, base_shot->data, base_shot->bytes_per_line * screen_height);
+	
         int lead_edge = (total_distance * step) / total_steps;
         int trail_edge = lead_edge - fade_band_height;
 
@@ -139,11 +143,13 @@ int main(int argc, char **argv) {
         XClearWindow(dpy, ov_win);
         XFlush(dpy);
 
-        XDestroyImage(frame);
+
 
         /* 16ms frame timing (~1 seconds overall transition) */
         usleep(16000); 
     }
+    
+    XDestroyImage(frame);
     
     /* Lock the final 50% checkerboard state as the permanent background */
     XSetWindowBackgroundPixmap(dpy, ov_win, bg_pix);
@@ -156,7 +162,6 @@ int main(int argc, char **argv) {
     
     Atom atoms[2] = { fullscreen, above };
     XChangeProperty(dpy, ov_win, state, XA_ATOM, 32, PropModeReplace, (unsigned char *)atoms, 2);
-
     /* 8. SHOW & INPUT GRAB */
     XtManageChild(dialog);
     XtPopup(overlay, XtGrabNone);
