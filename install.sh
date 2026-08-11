@@ -13,6 +13,7 @@ install -d "$PREFIX/bin"
 install -m755 scripts/yekara "$PREFIX/bin/"
 install -m755 scripts/YKBackdrop "$PREFIX/bin"
 install -m755 scripts/readXColors "$PREFIX/bin/"
+install -m755 scripts/YKAnimateIterationEvaluate "$PREFIX/bin/"
 
 # library
 cd libYekara

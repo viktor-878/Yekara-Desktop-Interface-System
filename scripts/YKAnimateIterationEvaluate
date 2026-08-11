@@ -1,0 +1,17 @@
+#!/usr/bin/env python3
+
+import re
+
+with open("/proc/cpuinfo") as f:
+    cpuinfo = f.read()
+
+m = re.search(r"cpu MHz\s+:\s+([0-9.]+)", cpuinfo)
+
+if not m:
+    raise RuntimeError("Could not determine CPU frequency")
+
+score = float(m.group(1))
+
+iterations = int(score / 16)
+
+print(f"*FvwmAnimate: Iterations {iterations}")

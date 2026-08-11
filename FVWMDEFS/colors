@@ -44,7 +44,7 @@ Xcursor.size: 24
 ! YKFont
 ! ----------------------------------------------------------
 
-Yekara*Font: helvetica, 12
+Yekara*Font: Adobe Helvetica, 12
 
 *highlightThickness: 0
 ! Target the menu bar widget (usually named 'menubar' or of class XmRowColumn
