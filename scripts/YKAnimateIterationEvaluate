@@ -12,6 +12,6 @@ if not m:
 
 score = float(m.group(1))
 
-iterations = int(score / 16)
+iterations = int(score / 8)
 
 print(f"*FvwmAnimate: Iterations {iterations}")
