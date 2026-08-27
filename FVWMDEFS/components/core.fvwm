@@ -49,7 +49,10 @@ Style * Colorset 1, HilightColorset 2, \
         BorderWidth 8, HandleWidth 8, \
         UseDecor VectorsDecor, MwmBorder, MwmDecor, StippledTitle, StippledIconTitle
 
-
+Style ToolBox Colorset 2, HilightColorset 2, \
+        BorderColorset 4, HilightBorderColorset 4, \
+        BorderWidth 8, HandleWidth 8
+       
 
 Module FvwmAnimate
 *FvwmAnimate: Effect Zoom3D
