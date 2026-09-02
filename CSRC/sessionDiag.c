@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
     screen_width  = DisplayWidth(dpy, screen);
     screen_height = DisplayHeight(dpy, screen);
 
-    YkResourceSysInit(toplevel);
+
 
     /* 3. CAPTURE BASE SCREENSHOT */
     XImage *base_shot = XGetImage(dpy, RootWindow(dpy, screen), 0, 0, 
@@ -79,14 +79,11 @@ int main(int argc, char **argv) {
     n = 0;
     XtSetArg(args[n], XmNwidth, screen_width); n++;
     XtSetArg(args[n], XmNheight, screen_height); n++;
-    XtSetArg(args[n], XmNx, 0); n++;
-    XtSetArg(args[n], XmNy, 0); n++;
     overlay = XtAppCreateShell("overlay", "Overlay", topLevelShellWidgetClass, dpy, args, n);
     /* 5. THE DIALOG */
     XmString msg = XmStringCreateLocalized(current_action.label);
     n = 0;
     XtSetArg(args[n], XmNmessageString, msg); n++;
-    XtSetArg(args[n], XmNdialogStyle, XmDIALOG_FULL_APPLICATION_MODAL); n++;
     dialog = XmCreateQuestionDialog(overlay, "confirm", args, n);
     XmStringFree(msg);
 
@@ -102,8 +99,8 @@ int main(int argc, char **argv) {
     Pixmap bg_pix = XCreatePixmap(dpy, ov_win, screen_width, screen_height, DefaultDepth(dpy, screen));
     GC gc = XCreateGC(dpy, bg_pix, 0, NULL);
     
-    int fade_band_height = 240; /* Height of the moving soft-fade sweep bar */
-    int total_steps = 25; 
+    int fade_band_height = 320; /* Height of the moving soft-fade sweep bar */
+    int total_steps = 253; // later i'll change this to work like YKAnimateIterationEvaluate or whatever that script was called lol
     int total_distance = screen_height + fade_band_height;
 
     XImage *frame = XCreateImage(dpy, DefaultVisual(dpy, screen), DefaultDepth(dpy, screen), ZPixmap, 0, malloc(base_shot->bytes_per_line * screen_height), screen_width, screen_height, 32, 0);
@@ -142,11 +139,6 @@ int main(int argc, char **argv) {
         XSetWindowBackgroundPixmap(dpy, ov_win, bg_pix);
         XClearWindow(dpy, ov_win);
         XFlush(dpy);
-
-
-
-        /* 16ms frame timing (~1 seconds overall transition) */
-        usleep(16000); 
     }
     
     XDestroyImage(frame);
@@ -163,8 +155,9 @@ int main(int argc, char **argv) {
     Atom atoms[2] = { fullscreen, above };
     XChangeProperty(dpy, ov_win, state, XA_ATOM, 32, PropModeReplace, (unsigned char *)atoms, 2);
     /* 8. SHOW & INPUT GRAB */
-    XtManageChild(dialog);
     XtPopup(overlay, XtGrabNone);
+    XtManageChild(dialog);
+
 
     XGrabPointer(dpy, ov_win, True, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
     XGrabKeyboard(dpy, ov_win, True, GrabModeAsync, GrabModeAsync, CurrentTime);

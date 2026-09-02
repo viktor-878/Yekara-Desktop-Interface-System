@@ -6,6 +6,7 @@ import os
 xrdb_file_default = os.path.expanduser("/usr/share/yekara/colors")
 xrdb_file = os.path.expanduser("~/.yekara/colors")
 
+subprocess.run(["xrdb", "-remove", "all"], check=True)
 subprocess.run(["xrdb", "-merge", xrdb_file_default], check=True)
 subprocess.run(["xrdb", "-merge", xrdb_file], check=False) # user-side file is optional
 

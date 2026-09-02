@@ -1,0 +1,67 @@
+
+(nemo-desktop:265790): Gtk-WARNING **: 02:55:05.368: Theme parsing error: gtk.css:25:14: 'filter' is not a valid property name
+
+(nemo-desktop:265790): Nemo-WARNING **: 02:55:05.395: Current gtk theme is not known to have nemo support (GES Brave) - checking...
+
+(nemo-desktop:265790): Nemo-WARNING **: 02:55:05.588: The theme appears to have no nemo support.  Adding some...
+Nemo-Message: 02:55:05.613: nemo-desktop: session is not cinnamon (checked XDG_SESSION_DESKTOP,DESKTOP_SESSION environment variables.) Applying default behavior
+
+(nemo-desktop:265790): Nemo-WARNING **: 02:55:05.686: Action '90_new-launcher.nemo_action' is missing dependency: cinnamon-desktop-editor
+
+(nemo-desktop:265790): Gtk-CRITICAL **: 02:55:05.749: gtk_widget_event: assertion 'WIDGET_REALIZED_FOR_EVENT (widget, event)' failed
+WARNING: Glycin running without sandbox.
+Glycin Thumbnailer: Remote error: org.gnome.glycin.Error.LoadingError: glycin-loaders/glycin-image-rs/src/main.rs:228:29: glycin-utils/src/image_rs.rs:60:41: unexpected end of file
+ERR<266042>: ../src/bin/tools/filemanager/e_fm_cmdline.c:53 fm_open_reply() org.freedesktop.DBus.Error.ServiceUnknown: The name is not activatable
+## Copy & Paste the below (until EOF) into a terminal, then hit Enter
+
+eina_btlog << EOF
+/usr/lib/libeina.so.1 0x7fa74d60cdfc 0x7fa74d5e2000
+/usr/lib/libeina.so.1 0x7fa74d603920 0x7fa74d5e2000
+/usr/lib/libeina.so.1 0x7fa74d610de5 0x7fa74d5e2000
+/usr/bin/enlightenment_filemanager 0x556f5338b3a1 0x556f5338a000
+/usr/lib/libeldbus.so.1 0x7fa74d51edb8 0x7fa74d511000
+/usr/lib/libdbus-1.so.3 0x7fa74cf58698 0x7fa74cf43000
+/usr/lib/libdbus-1.so.3 0x7fa74cf5cf1e 0x7fa74cf43000
+/usr/lib/libeldbus.so.1 0x7fa74d525c6a 0x7fa74d511000
+/usr/lib/libecore.so.1 0x7fa74d56fccb 0x7fa74d55b000
+/usr/lib/libeo.so.1 0x7fa74d46f3ce 0x7fa74d459000
+/usr/lib/libeo.so.1 0x7fa74d46f731 0x7fa74d459000
+/usr/lib/libecore.so.1 0x7fa74d577b22 0x7fa74d55b000
+/usr/lib/libecore.so.1 0x7fa74d57830d 0x7fa74d55b000
+/usr/lib/libecore.so.1 0x7fa74d58354a 0x7fa74d55b000
+/usr/lib/libecore.so.1 0x7fa74d57bde3 0x7fa74d55b000
+/usr/lib/libecore.so.1 0x7fa74d574428 0x7fa74d55b000
+/usr/bin/enlightenment_filemanager 0x556f5338b127 0x556f5338a000
+/usr/lib/libc.so.6 0x7fa74d227781 0x7fa74d200000
+/usr/lib/libc.so.6 0x7fa74d2278b9 0x7fa74d200000
+/usr/bin/enlightenment_filemanager 0x556f5338b205 0x556f5338a000
+EOF
+
+Did you unload the EFM module? Try loading it.
+ERR<267301>: ../src/bin/tools/filemanager/e_fm_cmdline.c:53 fm_open_reply() org.freedesktop.DBus.Error.ServiceUnknown: The name is not activatable
+## Copy & Paste the below (until EOF) into a terminal, then hit Enter
+
+eina_btlog << EOF
+/usr/lib/libeina.so.1 0x7f7ac1adddfc 0x7f7ac1ab3000
+/usr/lib/libeina.so.1 0x7f7ac1ad4920 0x7f7ac1ab3000
+/usr/lib/libeina.so.1 0x7f7ac1ae1de5 0x7f7ac1ab3000
+/usr/bin/enlightenment_filemanager 0x55d692bfe3a1 0x55d692bfd000
+/usr/lib/libeldbus.so.1 0x7f7ac19efdb8 0x7f7ac19e2000
+/usr/lib/libdbus-1.so.3 0x7f7ac143c698 0x7f7ac1427000
+/usr/lib/libdbus-1.so.3 0x7f7ac1440f1e 0x7f7ac1427000
+/usr/lib/libeldbus.so.1 0x7f7ac19f6c6a 0x7f7ac19e2000
+/usr/lib/libecore.so.1 0x7f7ac1a40ccb 0x7f7ac1a2c000
+/usr/lib/libeo.so.1 0x7f7ac15c33ce 0x7f7ac15ad000
+/usr/lib/libeo.so.1 0x7f7ac15c3731 0x7f7ac15ad000
+/usr/lib/libecore.so.1 0x7f7ac1a48b22 0x7f7ac1a2c000
+/usr/lib/libecore.so.1 0x7f7ac1a4930d 0x7f7ac1a2c000
+/usr/lib/libecore.so.1 0x7f7ac1a5454a 0x7f7ac1a2c000
+/usr/lib/libecore.so.1 0x7f7ac1a4cde3 0x7f7ac1a2c000
+/usr/lib/libecore.so.1 0x7f7ac1a45428 0x7f7ac1a2c000
+/usr/bin/enlightenment_filemanager 0x55d692bfe127 0x55d692bfd000
+/usr/lib/libc.so.6 0x7f7ac1627781 0x7f7ac1600000
+/usr/lib/libc.so.6 0x7f7ac16278b9 0x7f7ac1600000
+/usr/bin/enlightenment_filemanager 0x55d692bfe205 0x55d692bfd000
+EOF
+
+Did you unload the EFM module? Try loading it.

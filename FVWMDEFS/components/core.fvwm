@@ -56,6 +56,7 @@ Style ToolBox Colorset 2, HilightColorset 2, \
 
 Module FvwmAnimate
 *FvwmAnimate: Effect Zoom3D
+*FvwmAnimate: Width 2
 PipeRead YKAnimateIterationEvaluate
 
 Style * IconBox 10 10 -10 -10, IconGrid 1 1, IconFill Right Bottom
@@ -66,40 +67,7 @@ Style * IconBackgroundRelief 2
 
 Style * IconBackgroundColorset 2, IconTitleColorset 2
 
-
-
-
-# ------------------------------
-# BASE TRANSIENT SETUP
-# ------------------------------
-DestroyFunc FuncApplyTransientBase
-AddToFunc FuncApplyTransientBase
-+ I ThisWindow (Transient) WindowStyle FixedPosition, FixedSize
-+ I ThisWindow (Transient) UpdateStyles
-
-
-# ------------------------------
-# CENTER FUNCTION (single action)
-# ------------------------------
-DestroyFunc FuncCenterTransient
-AddToFunc FuncCenterTransient
-+ I ThisWindow (Transient) MoveToScreenCenter
-
-
-# ------------------------------
-# EVENT MODULE
-# ------------------------------
-DestroyModuleConfig FvwmEvent-TransientFix: *
-*FvwmEvent-TransientFix: add_window FuncApplyTransientBase
-*FvwmEvent-TransientFix: configure FuncCenterTransient
-
-Style overlay !Title, !Handles, !Borders, BorderWidth 6, !Button 1, !Button 2, !Button 4, !Closable, Sticky, StickyStippledTitle, WindowListSkip, !Closable, FixedSize, !Maximizable, !iconifiable, ResizeOpaque
-
-# ------------------------------
-# START
-# ------------------------------
-AddToFunc StartFunction
-+ I Module FvwmEvent FvwmEvent-TransientFix
+Style overlay !Button 1, !Button 2, !Button 3, !Button 4, !Button 5, !Button 6, !Button 7, !Button 8, !Button 9, !Button 0, BorderWidth 0, HandleWidth 0, !Title, !Border, !Handles
 
 DestroyMenu IconOpsMenu
 AddToMenu IconOpsMenu

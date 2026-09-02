@@ -9,6 +9,10 @@ Read $./components/core.fvwm
 Read $./components/toolbox.fvwm
 Read $./components/coreBindings.fvwm
 Read $./components/ROOTMENU.fvwm
+Read $./components/transientConfig.fvwm
 
 AddToFunc StartFunction
 + I Exec mpv --no-video $./startup.wav
+
+
+Style * MwmFrame

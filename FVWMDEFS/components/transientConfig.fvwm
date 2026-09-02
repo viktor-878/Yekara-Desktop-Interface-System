@@ -1,0 +1,41 @@
+
+# ============================================================
+# Yekara - Transient Window Rules
+# ============================================================
+
+# ------------------------------------------------------------
+# Initial transient handling
+# ------------------------------------------------------------
+
+DestroyFunc FuncApplyTransientRules
+AddToFunc   FuncApplyTransientRules
++ I ThisWindow (Transient) WindowStyle PositionPlacement Center, FixedPosition, FixedSize
++ I ThisWindow (Transient) PlaceAgain Center
+
+
+DestroyModuleConfig FE-TransientRules: *
+*FE-TransientRules: add_window FuncApplyTransientRules
+
+
+# ------------------------------------------------------------
+# Keep transients centered when their geometry changes
+# ------------------------------------------------------------
+
+DestroyFunc FuncRecenterTransient
+AddToFunc   FuncRecenterTransient
++ I ThisWindow (Transient) PlaceAgain Center
+
+
+DestroyModuleConfig FE-TransientRecenter: *
+*FE-TransientRecenter: add_window       FuncRecenterTransient
+
+
+# ------------------------------------------------------------
+# Start FvwmEvent modules
+# ------------------------------------------------------------
+
+AddToFunc StartFunction
++ I Module FvwmEvent FE-TransientRules
++ I Module FvwmEvent FE-TransientRecenter
+
+
