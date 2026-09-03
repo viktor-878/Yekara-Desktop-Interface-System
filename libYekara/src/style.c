@@ -5,7 +5,6 @@
 #include <X11/Xlib.h>
 #include <X11/Xresource.h>
 #include <X11/Xatom.h>
-#include <X11/Xutil.h>
 
 #include <Xm/XmAll.h>
 
@@ -197,7 +196,6 @@ static void YkRemoveKnownWindow(
    Yekara transient/dialog system
    ========================================================== */
 
-
 typedef struct YkTransientInfo {
     Window window;
     Window parent;
@@ -271,34 +269,6 @@ static void YkRemoveTransient(
 
 
 /* ----------------------------------------------------------
-   Center transient
----------------------------------------------------------- */
-
-/* ----------------------------------------------------------
-   Mark our chosen position as explicit
-
-   Without this, a top-level window's WM_NORMAL_HINTS carries
-   no USPosition/PPosition flag, and most window managers treat
-   that as "the app doesn't care where this goes" -- triggering
-   their own smart-placement/cascade logic, independently and
-   sometimes slightly asynchronously from the map itself. That
-   race is what produces a one-time jump away from wherever we
-   just centered the window: we move it first, the WM's own
-   placement policy overrides us a moment later, and only then
-   does our ConfigureNotify-driven correction move it back.
-
-   Declaring the position explicit heads the WM's own placement
-   logic off entirely, rather than just winning the race after
-   the fact. Existing hints (min/max size, resize increments,
-   gravity, ...) that Motif already set are preserved -- only
-   the position fields are added.
----------------------------------------------------------- */
-
-
-
-
-
-/* ----------------------------------------------------------
    Restore original transient size
 ---------------------------------------------------------- */
 
@@ -361,10 +331,15 @@ static void YkHandleTransientConfigure(
 
 
     /*
-     * Restore size first.
+     * Restore size.
      *
-     * If the application asked for a different size,
-     * libyk immediately restores the original size.
+     * If the application (or Motif's own internal relayout)
+     * asked for a different size, libyk immediately restores
+     * the original size. Position is intentionally left alone:
+     * fvwm's own PositionPlacement Center / PlaceAgain Center
+     * rules own centering entirely now, so libyk no longer
+     * tries to move the window at all -- just keep it the size
+     * it started at.
      */
     YkRestoreTransientSize(
         dpy,
@@ -1257,7 +1232,13 @@ static void YkRegisterTransient(
     );
 
 
-
+    /*
+     * Placement is intentionally left to fvwm now (see
+     * FE-TransientRules' WindowStyle PositionPlacement Center /
+     * PlaceAgain Center, applied on add_window). libyk no
+     * longer moves transients itself -- ConfigureNotify
+     * handling below only restores size, never position.
+     */
 
 
     /*

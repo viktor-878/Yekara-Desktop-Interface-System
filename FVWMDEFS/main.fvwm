@@ -15,4 +15,4 @@ AddToFunc StartFunction
 + I Exec mpv --no-video $./startup.wav
 
 
-Style * MwmFrame
+Style * BackingStore
