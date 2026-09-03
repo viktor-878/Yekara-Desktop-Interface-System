@@ -33,7 +33,7 @@ typedef struct {
 Win2kAction actions[] = {
     {"Shut down", "Ends your session and safely turns off your computer power.", "systemctl poweroff"},
     {"Restart", "Ends your session and restarts the system.", "systemctl reboot"},
-    {"Log off", "Ends your session, leaving the computer running for the next user.", "pkill -u $USER"}
+    {"Log off", "Ends your session but does not stop the system.", "pkill -u $USER"}
 };
 
 int selected_action_index = 0;
