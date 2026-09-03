@@ -25,6 +25,11 @@ typedef struct {
     const char *command;
 } Win2kAction;
 
+typedef struct {
+    Display *dpy;
+    Window window;
+} GrabData;
+
 Win2kAction actions[] = {
     {"Shut down", "Ends your session and safely turns off your computer power.", "systemctl poweroff"},
     {"Restart", "Ends your session and restarts the system.", "systemctl reboot"},
@@ -37,13 +42,41 @@ Widget desc_label;
 /* Callback when the user picks an action from the drop-down menu */
 void selection_cb(Widget w, XtPointer client_data, XtPointer call_data) {
     XmComboBoxCallbackStruct *cb = (XmComboBoxCallbackStruct *)call_data;
-    selected_action_index = cb->item_position; /* 0-indexed in XmComboBox */
+    GrabData *grab = (GrabData *)client_data;
+
+    selected_action_index = cb->item_position;
 
     if (selected_action_index >= 0 && selected_action_index < 3) {
-        XmString desc_str = XmStringCreateLtoR((char *)actions[selected_action_index].description, XmFONTLIST_DEFAULT_TAG);
+        XmString desc_str = XmStringCreateLtoR(
+            (char *)actions[selected_action_index].description,
+            XmFONTLIST_DEFAULT_TAG
+        );
+
         XtVaSetValues(desc_label, XmNlabelString, desc_str, NULL);
         XmStringFree(desc_str);
     }
+
+    /* Re-grab input on the main dialog */
+    XGrabPointer(
+        grab->dpy,
+        grab->window,
+        True,
+        ButtonPressMask,
+        GrabModeAsync,
+        GrabModeAsync,
+        None,
+        None,
+        CurrentTime
+    );
+
+    XGrabKeyboard(
+        grab->dpy,
+        grab->window,
+        True,
+        GrabModeAsync,
+        GrabModeAsync,
+        CurrentTime
+    );
 }
 
 /* Callback for button actions */
@@ -181,7 +214,11 @@ int main(int argc, char **argv) {
     XtSetArg(args[n], XmNrightAttachment, XmATTACH_FORM); n++;
     XtSetArg(args[n], XmNrightOffset, 15); n++;
     combo = XmCreateComboBox(form, "actionCombo", args, n);
-    XtAddCallback(combo, XmNselectionCallback, selection_cb, NULL);
+        GrabData grab_data = {
+    .dpy = dpy,
+    .window = None
+};
+
     XtManageChild(combo);
 
     XmStringFree(items[0]);
@@ -264,8 +301,8 @@ int main(int argc, char **argv) {
     XtPopup(overlay, XtGrabNone);
     XLowerWindow(dpy, mw_win);
     
-    XGrabPointer(dpy, ov_win, True, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
-    XGrabKeyboard(dpy, ov_win, True, GrabModeAsync, GrabModeAsync, CurrentTime);
+    XGrabPointer(dpy, mw_win, True, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
+    XGrabKeyboard(dpy, mw_win, True, GrabModeAsync, GrabModeAsync, CurrentTime);
     
     Pixmap bg_pix = XCreatePixmap(dpy, ov_win, screen_width, screen_height, DefaultDepth(dpy, screen));
     GC gc = XCreateGC(dpy, bg_pix, 0, NULL);
@@ -319,7 +356,8 @@ int main(int argc, char **argv) {
             XtAppProcessEvent(app, XtIMAll);
         }
     }
-
+    grab_data.window = mw_win;
+    XtAddCallback(combo, XmNselectionCallback, selection_cb, &grab_data);
     XRaiseWindow(dpy, mw_win);
     XSetInputFocus(
     dpy,
@@ -327,7 +365,7 @@ int main(int argc, char **argv) {
     RevertToParent,
     CurrentTime
     );
-    
+
     XGrabPointer(dpy, mw_win, True, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
     XGrabKeyboard(dpy, mw_win, True, GrabModeAsync, GrabModeAsync, CurrentTime);
     

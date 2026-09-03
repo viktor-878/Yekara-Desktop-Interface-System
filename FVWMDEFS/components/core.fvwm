@@ -117,7 +117,7 @@ Emulate Win
 
 Style xterm IconOverride, Icon $./images/terminal.xpm
 
-Style SessionWindow FixedPosition, FixedSize, !Title, !Handles, !Button 1, !Button 2, !Button 4, !Closable, Sticky, StickyStippledTitle, WindowListSkip, !Closable, FixedSize, !Maximizable, !iconifiable, ResizeOpaque
+Style SessionWindow FixedPosition, FixedSize, !Title, !Handles, !Button 1, !Button 2, !Button 4, !Closable, Sticky, StickyStippledTitle, WindowListSkip, !Closable, !Maximizable, !iconifiable, ResizeOpaque
 
 AddToFunc SuperWinControls
 + C Raise
