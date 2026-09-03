@@ -67,7 +67,7 @@ Style * IconBackgroundRelief 2
 
 Style * IconBackgroundColorset 2, IconTitleColorset 2
 
-Style overlay !Title, !Handles, !Borders, BorderWidth 6, !Button 1, !Button 2, !Button 4, !Closable, Sticky, StickyStippledTitle, WindowListSkip, !Closable, FixedSize, !Maximizable, !iconifiable, ResizeOpaque
+Style overlay !Title, !Handles, !Borders, BorderWidth 0, !Button 1, !Button 2, !Button 4, !Closable, Sticky, StickyStippledTitle, WindowListSkip, !Closable, FixedSize, !Maximizable, !iconifiable, ResizeOpaque
 
 DestroyMenu IconOpsMenu
 AddToMenu IconOpsMenu
@@ -116,6 +116,8 @@ Mouse 3 2 A Menu WinOpsMenu
 Emulate Win
 
 Style xterm IconOverride, Icon $./images/terminal.xpm
+
+Style SessionWindow FixedPosition, FixedSize, !Title, !Handles, !Button 1, !Button 2, !Button 4, !Closable, Sticky, StickyStippledTitle, WindowListSkip, !Closable, FixedSize, !Maximizable, !iconifiable, ResizeOpaque
 
 AddToFunc SuperWinControls
 + C Raise
