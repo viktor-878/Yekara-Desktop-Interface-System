@@ -11,3 +11,4 @@ Atualmente, o projeto está em uma fase inicial de desenvolvimento.
 Entre no servidor do Discord:
 
 https://discord.gg/bWcNSJHmZ
+
