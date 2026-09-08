@@ -1,5 +1,5 @@
 append_apps_path () {
-    case":$YK_APPS_PATH:" in
+    case ":$YK_APPS_PATH:" in
 	*:"$1":*)
 	    ;;
 	*)
