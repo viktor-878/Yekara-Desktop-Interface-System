@@ -9,7 +9,13 @@ PipeRead "yk-applications-menu"
 *ToolBox: (2x1, Right, Icon $./images/menu_plus.png, Title (Side, Left) "Applications ", Action (Mouse 1) `Menu YKMenu rectangle $widthx$height+$left+$top +$widthp-5p +1p`)
 *ToolBox: (2x1, Title (Side, Left) "Preferences ", Action (Mouse 1) `Menu PrefsMenu rectangle $widthx$height+$left+$top +$widthp-5p +1p`)
 *ToolBox: (2x1, Right, Icon $./images/menu_plus.png, Title (Side, Left) "System ", Action (Mouse 1) `Menu SysMenu rectangle $widthx$height+$left+$top +$widthp-5p +1p`)
-*ToolBox: (3x1, Left, Swallow stalonetray `Exec stalonetray --parent-bg --icon-size 16 --icon-gravity NW`, Frame -1)
+*ToolBox: (3x1, Frame 1, Padding 1 1, \
+    Container(Frame -1))
+*ToolBox: (Left, Swallow "stalonetray" \
+    `Exec stalonetray --parent-bg --icon-size 12 --icon-gravity NW --geometry 1x1+0-6`)
+*ToolBox: (End)
+
+# one idea i had was to make a double frame layout, one where the tray has a sunken border and another where it has a raised border, the sunken inside the raised, with a 1px padding around, but idk how to do that
 
 AddToMenu SysMenu
 + "Logout" Exec ykSessionDialog --logout

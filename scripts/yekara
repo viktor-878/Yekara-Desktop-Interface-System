@@ -108,7 +108,7 @@ if "/usr/local/bin" not in path.split(":"):
 FVWM_BIN = os.environ.get("FVWM_BIN")
 
 if not FVWM_BIN:
-    for candidate in ("fvwm3", "fvwm2", "fvwm"):
+    for candidate in ("ykwm", "fvwm3", "fvwm2", "fvwm"): # sneak peek
         found = shutil.which(candidate)
 
         if found:

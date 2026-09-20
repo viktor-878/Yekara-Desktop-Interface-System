@@ -5,7 +5,7 @@ PREFIX="${1:-/usr}"
 echo "Installing Yekara into $PREFIX"
 
 # STUFF
-cp YK_GLOBAL_ENVVARS /etc/profile.d/YK_VARS
+cp YK_GLOBAL_ENVVARS /etc/profile.d/YK_VARS.sh
 
 # binaries
 install -d "$PREFIX/bin"

@@ -158,8 +158,8 @@ configure:4428: $? = 0
 configure:4444: result: yes
 configure:4464: checking whether make supports the include directive
 configure:4479: make -f confmf.GNU && cat confinc.out
-make[1]: Entering directory '/home/viktor878/YK-Desktop/ykclock'
-make[1]: Leaving directory '/home/viktor878/YK-Desktop/ykclock'
+make[1]: Entering directory '/home/viktor878/Yekara-Desktop-Interface-System/ykclock'
+make[1]: Leaving directory '/home/viktor878/Yekara-Desktop-Interface-System/ykclock'
 this is the am__doit target
 configure:4482: $? = 0
 configure:4501: result: yes (GNU style)
@@ -171,27 +171,27 @@ configure:4770: found /usr/bin/pkg-config
 configure:4783: result: /usr/bin/pkg-config
 configure:4808: checking pkg-config is at least version 0.9.0
 configure:4811: result: yes
-configure:4824: checking for x11
-configure:4831: $PKG_CONFIG --exists --print-errors "x11"
-configure:4834: $? = 0
-configure:4848: $PKG_CONFIG --exists --print-errors "x11"
-configure:4851: $? = 0
-configure:4909: result: yes
-configure:4915: checking for xpm
-configure:4922: $PKG_CONFIG --exists --print-errors "xpm"
-configure:4925: $? = 0
-configure:4939: $PKG_CONFIG --exists --print-errors "xpm"
-configure:4942: $? = 0
-configure:5000: result: yes
-configure:5006: checking for xext
-configure:5013: $PKG_CONFIG --exists --print-errors "xext"
-configure:5016: $? = 0
-configure:5030: $PKG_CONFIG --exists --print-errors "xext"
-configure:5033: $? = 0
-configure:5091: result: yes
-configure:5203: checking that generated files are newer than configure
-configure:5209: result: done
-configure:5252: creating ./config.status
+configure:4821: checking for x11
+configure:4828: $PKG_CONFIG --exists --print-errors "x11"
+configure:4831: $? = 0
+configure:4845: $PKG_CONFIG --exists --print-errors "x11"
+configure:4848: $? = 0
+configure:4906: result: yes
+configure:4912: checking for xpm
+configure:4919: $PKG_CONFIG --exists --print-errors "xpm"
+configure:4922: $? = 0
+configure:4936: $PKG_CONFIG --exists --print-errors "xpm"
+configure:4939: $? = 0
+configure:4997: result: yes
+configure:5003: checking for xext
+configure:5010: $PKG_CONFIG --exists --print-errors "xext"
+configure:5013: $? = 0
+configure:5027: $PKG_CONFIG --exists --print-errors "xext"
+configure:5030: $? = 0
+configure:5088: result: yes
+configure:5200: checking that generated files are newer than configure
+configure:5206: result: done
+configure:5249: creating ./config.status
 
 ## ---------------------- ##
 ## Running config.status. ##
@@ -212,9 +212,9 @@ config.status:767: creating Makefile
 config.status:767: creating ykclock.1
 config.status:939: executing depfiles commands
 config.status:1014: cd .       && sed -e '/# am--include-marker/d' Makefile         | make -f - am--depfiles
-make[1]: Entering directory '/home/viktor878/YK-Desktop/ykclock'
+make[1]: Entering directory '/home/viktor878/Yekara-Desktop-Interface-System/ykclock'
 make[1]: Nothing to be done for 'am--depfiles'.
-make[1]: Leaving directory '/home/viktor878/YK-Desktop/ykclock'
+make[1]: Leaving directory '/home/viktor878/Yekara-Desktop-Interface-System/ykclock'
 config.status:1021: $? = 0
 
 ## ---------------- ##
@@ -284,7 +284,7 @@ pkg_cv_xpm_LIBS='-lXpm -lX11'
 ## Output variables. ##
 ## ----------------- ##
 
-ACLOCAL='${SHELL} '\''/home/viktor878/YK-Desktop/ykclock/missing'\'' aclocal-1.18'
+ACLOCAL='${SHELL} '\''/home/viktor878/Yekara-Desktop-Interface-System/ykclock/missing'\'' aclocal-1.18'
 AMDEPBACKSLASH='\'
 AMDEP_FALSE='#'
 AMDEP_TRUE=''
@@ -293,9 +293,9 @@ AM_BACKSLASH='\'
 AM_DEFAULT_V='$(AM_DEFAULT_VERBOSITY)'
 AM_DEFAULT_VERBOSITY='1'
 AM_V='$(V)'
-AUTOCONF='${SHELL} '\''/home/viktor878/YK-Desktop/ykclock/missing'\'' autoconf'
-AUTOHEADER='${SHELL} '\''/home/viktor878/YK-Desktop/ykclock/missing'\'' autoheader'
-AUTOMAKE='${SHELL} '\''/home/viktor878/YK-Desktop/ykclock/missing'\'' automake-1.18'
+AUTOCONF='${SHELL} '\''/home/viktor878/Yekara-Desktop-Interface-System/ykclock/missing'\'' autoconf'
+AUTOHEADER='${SHELL} '\''/home/viktor878/Yekara-Desktop-Interface-System/ykclock/missing'\'' autoheader'
+AUTOMAKE='${SHELL} '\''/home/viktor878/Yekara-Desktop-Interface-System/ykclock/missing'\'' automake-1.18'
 AWK='gawk'
 CC='gcc'
 CCDEPMODE='depmode=gcc3'
@@ -320,7 +320,7 @@ LDFLAGS=''
 LIBOBJS=''
 LIBS=''
 LTLIBOBJS=''
-MAKEINFO='${SHELL} '\''/home/viktor878/YK-Desktop/ykclock/missing'\'' makeinfo'
+MAKEINFO='${SHELL} '\''/home/viktor878/Yekara-Desktop-Interface-System/ykclock/missing'\'' makeinfo'
 MKDIR_P='/usr/bin/mkdir -p'
 OBJEXT='o'
 PACKAGE='ykclock'
@@ -363,7 +363,7 @@ host_alias=''
 htmldir='${docdir}'
 includedir='${prefix}/include'
 infodir='${datarootdir}/info'
-install_sh='${SHELL} /home/viktor878/YK-Desktop/ykclock/install-sh'
+install_sh='${SHELL} /home/viktor878/Yekara-Desktop-Interface-System/ykclock/install-sh'
 libdir='${exec_prefix}/lib'
 libexecdir='${exec_prefix}/libexec'
 localedir='${datarootdir}/locale'

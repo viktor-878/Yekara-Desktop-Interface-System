@@ -2,7 +2,7 @@ PipeRead "yk-applications-menu"
 
 PipeRead "readXColors"
 
-MenuStyle * MenuColorset 0, ActiveColorset 0, GreyedColorset 0, TitleColorset 2
+MenuStyle * MenuColorset 0, ActiveColorset 0, GrayedColorset 0, TitleColorset 2
 
 # =====================================================================
 # FVWM Default Cursor Configuration Base
@@ -63,7 +63,6 @@ Style * IconBox 10 10 -10 -10, IconGrid 1 1, IconFill Right Bottom
 Style * IconSize 72 72 -1 -1
 Style * IconBackgroundRelief 2
 Style * IconBackgroundPadding 2
-Style * IconBackgroundRelief 2
 
 Style * IconBackgroundColorset 2, IconTitleColorset 2
 

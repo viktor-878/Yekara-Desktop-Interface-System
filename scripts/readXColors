@@ -124,8 +124,8 @@ def scale_color(rgb, factor):
 
 def compute_bevels(
     bg_hex,
-    highlight_strength=0.8,
-    shadow_strength=0.45
+    highlight_strength=0.93,
+    shadow_strength=0.5
 ):
     if not bg_hex or not bg_hex.startswith("#"):
         return None, None

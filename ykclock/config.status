@@ -404,7 +404,7 @@ Copyright (C) 2026 Free Software Foundation, Inc.
 This config.status script is free software; the Free Software Foundation
 gives unlimited permission to copy, distribute and modify it."
 
-ac_pwd='/home/viktor878/YK-Desktop/ykclock'
+ac_pwd='/home/viktor878/Yekara-Desktop-Interface-System/ykclock'
 srcdir='.'
 INSTALL='/usr/bin/install -c'
 MKDIR_P='/usr/bin/mkdir -p'
@@ -622,12 +622,12 @@ S["mkdir_p"]="$(MKDIR_P)"
 S["MKDIR_P"]="/usr/bin/mkdir -p"
 S["INSTALL_STRIP_PROGRAM"]="$(install_sh) -c -s"
 S["STRIP"]=""
-S["install_sh"]="${SHELL} /home/viktor878/YK-Desktop/ykclock/install-sh"
-S["MAKEINFO"]="${SHELL} '/home/viktor878/YK-Desktop/ykclock/missing' makeinfo"
-S["AUTOHEADER"]="${SHELL} '/home/viktor878/YK-Desktop/ykclock/missing' autoheader"
-S["AUTOMAKE"]="${SHELL} '/home/viktor878/YK-Desktop/ykclock/missing' automake-1.18"
-S["AUTOCONF"]="${SHELL} '/home/viktor878/YK-Desktop/ykclock/missing' autoconf"
-S["ACLOCAL"]="${SHELL} '/home/viktor878/YK-Desktop/ykclock/missing' aclocal-1.18"
+S["install_sh"]="${SHELL} /home/viktor878/Yekara-Desktop-Interface-System/ykclock/install-sh"
+S["MAKEINFO"]="${SHELL} '/home/viktor878/Yekara-Desktop-Interface-System/ykclock/missing' makeinfo"
+S["AUTOHEADER"]="${SHELL} '/home/viktor878/Yekara-Desktop-Interface-System/ykclock/missing' autoheader"
+S["AUTOMAKE"]="${SHELL} '/home/viktor878/Yekara-Desktop-Interface-System/ykclock/missing' automake-1.18"
+S["AUTOCONF"]="${SHELL} '/home/viktor878/Yekara-Desktop-Interface-System/ykclock/missing' autoconf"
+S["ACLOCAL"]="${SHELL} '/home/viktor878/Yekara-Desktop-Interface-System/ykclock/missing' aclocal-1.18"
 S["VERSION"]="1.0.16"
 S["PACKAGE"]="ykclock"
 S["CYGPATH_W"]="echo"
