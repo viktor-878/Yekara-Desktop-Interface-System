@@ -23,7 +23,7 @@ $(TARGET): $(OBJ)
 	rm -f $(BUNDLE_DIR)/app.metadata
 	echo "[Application Entry]" >> $(BUNDLE_DIR)/app.metadata
 	echo "ExecFile=$(APP_NAME)" >> $(BUNDLE_DIR)/app.metadata
-	echo "Icon=$(ICON_NAME)" >> $(BUNDLE_DIR)/app.metadata
+	echo "Icon=$(ICON_NAME):textbook_xpm" >> $(BUNDLE_DIR)/app.metadata
 
 	rm -rf $(BUNDLE_DIR)/$(RESOURCES_DIR)
 	cp -r $(RESOURCES_DIR) $(BUNDLE_DIR)/$(RESOURCES_DIR)

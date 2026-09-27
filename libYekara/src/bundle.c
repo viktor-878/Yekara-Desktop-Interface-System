@@ -264,19 +264,73 @@ const char* yk_get_current_bundle()
     return bundle;
 }
 
-const char* yk_get_current_bundle_icon()
+const char *yk_get_current_bundle_icon()
 {
     static char icon_path[PATH_MAX_LEN];
 
     const char *bundle_path = yk_get_current_bundle_path();
-    if (!bundle_path) return NULL;
 
-    char icon_name[NAME_MAX_LEN];
-
-    if (yk_get_property(bundle_path, "Icon", icon_name, sizeof(icon_name)) != 0)
+    if (!bundle_path)
         return NULL;
 
-    snprintf(icon_path, sizeof(icon_path), "%s/resources/%s.gzi", bundle_path, icon_name);
+    char icon_value[NAME_MAX_LEN];
+
+    if (yk_get_property(
+            bundle_path,
+            "Icon",
+            icon_value,
+            sizeof(icon_value)
+        ) != 0)
+        return NULL;
+
+    char file_name[NAME_MAX_LEN];
+    char tag_name[NAME_MAX_LEN];
+
+    const char *separator = strchr(icon_value, ':');
+
+    if (separator) {
+        size_t file_len = separator - icon_value;
+
+        if (file_len >= sizeof(file_name))
+            return NULL;
+
+        memcpy(file_name, icon_value, file_len);
+        file_name[file_len] = '\0';
+
+        snprintf(
+            tag_name,
+            sizeof(tag_name),
+            "%s",
+            separator + 1
+        );
+    }
+    else {
+        snprintf(file_name, sizeof(file_name), "%s", icon_value);
+        tag_name[0] = '\0';
+    }
+
+    if (!strstr(file_name, ".gzi"))
+        strncat(file_name, ".gzi", sizeof(file_name) - strlen(file_name) - 1);
+
+    if (tag_name[0]) {
+        snprintf(
+            icon_path,
+            sizeof(icon_path),
+            "%s/resources/%s:%s",
+            bundle_path,
+            file_name,
+            tag_name
+        );
+    }
+    else {
+        snprintf(
+            icon_path,
+            sizeof(icon_path),
+            "%s/resources/%s",
+            bundle_path,
+            file_name
+        );
+    }
 
     return icon_path;
 }

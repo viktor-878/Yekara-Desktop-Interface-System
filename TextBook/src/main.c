@@ -1,5 +1,6 @@
 #include <Xm/Xm.h>
 #include <Xm/RowColumn.h>
+#include <yk/window.h>
 #include <Xm/Text.h>
 #include <Xm/PushB.h>
 #include <Xm/FileSB.h>
@@ -104,55 +105,7 @@ void edit_menu_callback(Widget w, XtPointer client_data, XtPointer call_data) {
     }
 }
 
-/* ---------------- Icon Loader ---------------- */
-static int load_bundle_icon(Widget toplevel, char *argv0) {
-    yk_set_argv0(argv0);
 
-    GZI_Image *img = gzi_load(yk_get_current_bundle_icon(), "textbook_xpm");
-    if (!img) {
-        fprintf(stderr, "GZI icon load failed\n");
-        return 0;
-    }
-
-    char **xpm = gzi_build_xpm(img);
-    if (!xpm) {
-        fprintf(stderr, "XPM generation failed\n");
-        gzi_free(img);
-        return 0;
-    }
-
-    Pixmap pixmap, mask;
-    XpmAttributes attr;
-    memset(&attr, 0, sizeof(attr));
-
-    attr.visual = DefaultVisualOfScreen(XtScreen(toplevel));
-    attr.colormap = DefaultColormapOfScreen(XtScreen(toplevel));
-    attr.depth = DefaultDepthOfScreen(XtScreen(toplevel));
-    attr.valuemask = XpmVisual | XpmColormap | XpmDepth;
-
-    int status = XpmCreatePixmapFromData(
-        XtDisplay(toplevel),
-        RootWindowOfScreen(XtScreen(toplevel)),
-        xpm,
-        &pixmap,
-        &mask,
-        &attr
-    );
-
-    if (status != XpmSuccess) {
-        fprintf(stderr, "XPM build failed: %s\n", XpmGetErrorString(status));
-        gzi_free(img);
-        return 0;
-    }
-
-    XtVaSetValues(toplevel,
-                  XmNiconPixmap, pixmap,
-                  XmNiconMask, mask,
-                  NULL);
-
-    gzi_free(img);
-    return 1;
-}
 
 /* ---------------- Main ---------------- */
 int main(int argc, char **argv) {
@@ -162,14 +115,8 @@ int main(int argc, char **argv) {
     Widget open_item, save_item, quit_item;
     Widget cut_item, copy_item, paste_item, select_all_item;
 
-    toplevel = XtVaAppInitialize(&app, "XmTextEditor", NULL, 0, &argc, argv, NULL, NULL);
+    toplevel = YkInitWindow(&app, "XmTextEditor", &argc, argv);
     XtVaSetValues(toplevel, XmNwidth, 720, XmNheight, 480, NULL);
-
-    /* Only wires up the reload atom + event handler at this point --
-       the widget tree doesn't exist yet, so a reload here would have
-       nothing to walk. The actual theme apply happens further down,
-       once the whole UI has been built. */
-    YkResourceSysInit(toplevel);
 
     form = XtVaCreateManagedWidget("form", xmFormWidgetClass, toplevel, NULL);
 
@@ -249,9 +196,6 @@ int main(int argc, char **argv) {
     XtVaSetValues(copy_item, XmNaccelerator, "Ctrl<Key>C", XmNacceleratorText, XmStringCreateLocalized("Ctrl+C"), NULL);
     XtVaSetValues(paste_item, XmNaccelerator, "Ctrl<Key>V", XmNacceleratorText, XmStringCreateLocalized("Ctrl+V"), NULL);
     XtVaSetValues(select_all_item, XmNaccelerator, "Ctrl<Key>A", XmNacceleratorText, XmStringCreateLocalized("Ctrl+A"), NULL);
-
-    if (!load_bundle_icon(toplevel, argv[0]))
-        fprintf(stderr, "icon load failed\n");
 
     XtRealizeWidget(toplevel);
 

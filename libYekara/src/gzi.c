@@ -412,14 +412,21 @@ static int load_from_archive(const char *file, GZI_Image *img, const char *array
 
 /* ---------------- Public Loader ---------------- */
 GZI_Image *gzi_load(const char *path, const char *array_name) {
+    printf("[GZI] path      = '%s'\n", path);
+    printf("[GZI] array_name = '%s'\n", array_name);
+
     GZI_Image *img = calloc(1, sizeof(GZI_Image));
     if(!img) return NULL;
-    
-    int ok = ends_with(path, ".gzi") ? load_from_archive(path, img, array_name) : 0;
-    if(!ok) { 
-        gzi_free(img); 
-        return NULL; 
+
+    int ok = ends_with(path, ".gzi")
+        ? load_from_archive(path, img, array_name)
+        : 0;
+
+    if(!ok) {
+        gzi_free(img);
+        return NULL;
     }
+
     return img;
 }
 
