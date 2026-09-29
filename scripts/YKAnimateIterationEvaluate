@@ -2,15 +2,13 @@
 
 import re
 
-with open("/proc/cpuinfo") as f:
+with open("/sys/devices/system/cpu/cpufreq/policy0/cpuinfo_max_freq") as f:
     cpuinfo = f.read()
 
-m = re.search(r"cpu MHz\s+:\s+([0-9.]+)", cpuinfo)
-
-if not m:
+if not cpuinfo:
     raise RuntimeError("Could not determine CPU frequency")
 
-score = float(m.group(1))
+score = float(cpuinfo) / 1000
 
 iterations = int(score / 6)
 
