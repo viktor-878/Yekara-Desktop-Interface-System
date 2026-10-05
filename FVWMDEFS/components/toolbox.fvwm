@@ -6,22 +6,18 @@ PipeRead "yk-applications-menu"
 *Toolbox: Padding 6 4
 *ToolBox: ButtonGeometry 64x21+10-10
 *ToolBox: (1x3, Swallow "ykclock" `Exec ykclock -led "#ff0067" -12`)
-*ToolBox: (2x1, Right, Icon $./images/menu_plus.png, Title (Side, Left) "Applications ", Action (Mouse 1) `Menu YKMenu rectangle $widthx$height+$left+$top +$widthp-5p +1p`)
+*ToolBox: (2x1, Right, Icon $./images/menu\_plus.png, Title (Side, Left) "Applications ", Action (Mouse 1) `Menu YKMenu rectangle $widthx$height+$left+$top +$widthp-5p +1>
 *ToolBox: (2x1, Title (Side, Left) "Preferences ", Action (Mouse 1) `Menu PrefsMenu rectangle $widthx$height+$left+$top +$widthp-5p +1p`)
 *ToolBox: (2x1, Right, Icon $./images/menu_plus.png, Title (Side, Left) "System ", Action (Mouse 1) `Menu SysMenu rectangle $widthx$height+$left+$top +$widthp-5p +1p`)
-*ToolBox: (3x1, Frame 1, Padding 1 1, \
-    Container(Frame -1))
-*ToolBox: (Left, Swallow "stalonetray" \
-    `Exec stalonetray --parent-bg --icon-size 12 --icon-gravity NW --geometry 1x1+0-6`)
-*ToolBox: (End)
+*ToolBox: (3x1, Left, Padding 2 2, Swallow "stalonetray" `Exec stalonetray --parent-bg --icon-gravity NW --geometry 1x1+0+0 --icon-size 16`)
 
-# one idea i had was to make a double frame layout, one where the tray has a sunken border and another where it has a raised border, the sunken inside the raised, with a 1px padding around, but idk how to do that
 
 AddToMenu SysMenu
 + "Logout" Exec ykSessionDialog --logout
 + "Reboot" Exec ykSessionDialog --reboot
 + "Shutdown" Exec ykSessionDialog --shutdown
-Style ToolBox !Button 1, !Button 2, !Button 3, !Button 4, !Button 5, !Button 6, !Button 7, !Button 8, !Button 9, !Button 0, FixedSize, !Maximizable, !Iconifiable, WindowListSkip, !Handles, Sticky, !Closable. !Destroyable. WindowListSkip, CirculateSkip, !Killable
+  Style ToolBox !Button 1, !Button 2, !Button 3, !Button 4, !Button 5, !Button 6, !Button 7, !Button 8, !Button 9, !Button 0, FixedSize, !Maximizable, !Iconifiable, Window, !Handles, !Closeable, WindowListSkip, CirculateSkip
 
 AddToFunc StartFunction
+
 + I Module FvwmButtons ToolBox
