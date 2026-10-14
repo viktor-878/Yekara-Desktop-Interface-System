@@ -3,6 +3,7 @@
 #include <string.h>
 #include <archive.h>
 #include <archive_entry.h>
+#include "yk/entry.h" // Unified configuration parser
 
 typedef struct {
     char symbol[8];
@@ -52,46 +53,58 @@ static int ends_with(const char *s, const char *suffix) {
     return su <= sl && strcmp(s + sl - su, suffix) == 0;
 }
 
-/* ---------------- Meta Parser ---------------- */
+/* ---------------- Meta Parser (Using entry.h) ---------------- */
 static GZI_Meta parse_meta_sections(char *data) {
     GZI_Meta meta = {0, NULL};
-    GZI_Section current = {0};
+    
+    EntryDocument *doc = parse_entry_string(data);
+    if (!doc) return meta;
 
-    char *line = strtok(data, "\n");
-    while(line) {
-        trim(line);
-        if(line[0] == '#' || line[0] == 0) { 
-            line = strtok(NULL, "\n"); 
-            continue; 
-        }
+    int count = 0;
+    EntrySection *sec = doc->sections;
+    while (sec) {
+        if (strcmp(sec->name, "global") != 0) count++;
+        sec = sec->next;
+    }
 
-        if(line[0] == '[') {
-            if(current.array_name[0] != 0) {
-                GZI_Section *tmp = realloc(meta.sections, sizeof(GZI_Section) * (meta.section_count + 1));
-                if (tmp) {
-                    meta.sections = tmp;
-                    meta.sections[meta.section_count++] = current;
+    if (count == 0) {
+        free_entry_document(doc);
+        return meta;
+    }
+
+    meta.sections = malloc(sizeof(GZI_Section) * count);
+    if (!meta.sections) {
+        free_entry_document(doc);
+        return meta;
+    }
+    meta.section_count = 0;
+
+    sec = doc->sections;
+    while (sec) {
+        if (strcmp(sec->name, "global") != 0) {
+            GZI_Section *cur = &meta.sections[meta.section_count++];
+            memset(cur, 0, sizeof(GZI_Section));
+            
+            snprintf(cur->array_name, sizeof(cur->array_name), "%s", sec->name);
+
+            EntryNode *n = sec->entries;
+            while (n) {
+                if (strcasecmp(n->key, "width") == 0) {
+                    cur->width = atoi(n->raw_value);
+                } else if (strcasecmp(n->key, "height") == 0) {
+                    cur->height = atoi(n->raw_value);
+                } else if (strcasecmp(n->key, "palette") == 0) {
+                    snprintf(cur->palette_file, sizeof(cur->palette_file), "%s.opal", n->raw_value);
+                } else if (strcasecmp(n->key, "name") == 0) {
+                    snprintf(cur->pxmap_file, sizeof(cur->pxmap_file), "%s.pxmap", n->raw_value);
                 }
+                n = n->next;
             }
-            memset(&current, 0, sizeof(GZI_Section));
-            sscanf(line, "[%63[^]]", current.array_name);
         }
-        else if(strncmp(line, "width=", 6) == 0) current.width = atoi(line + 6);
-        else if(strncmp(line, "height=", 7) == 0) current.height = atoi(line + 7);
-        else if(strncmp(line, "palette=", 8) == 0) snprintf(current.palette_file, sizeof(current.palette_file), "%s.opal", line + 8); // palette file name
-        else if(strncmp(line, "name=", 5) == 0) snprintf(current.pxmap_file, sizeof(current.pxmap_file), "%s.pxmap", line + 5); // pxmap file name
-
-        line = strtok(NULL, "\n");
+        sec = sec->next;
     }
 
-    if(current.array_name[0] != 0) {
-        GZI_Section *tmp = realloc(meta.sections, sizeof(GZI_Section) * (meta.section_count + 1));
-        if (tmp) {
-            meta.sections = tmp;
-            meta.sections[meta.section_count++] = current;
-        }
-    }
-
+    free_entry_document(doc);
     return meta;
 }
 

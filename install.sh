@@ -34,9 +34,12 @@ cd ..
 cd TextBook
 make
 install -d "/applications"
-rm -rf "/applications/TextBook.deskapp"
-mkdir "/applications/TextBook.deskapp"
-cp -r TextBook.deskapp/* "/applications/TextBook.deskapp"
+make install
+cd ..
+
+cd filecabinet
+make
+install -d "/applications"
 make install
 cd ..
 

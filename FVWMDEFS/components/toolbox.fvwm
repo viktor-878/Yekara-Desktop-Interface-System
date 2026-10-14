@@ -9,7 +9,7 @@ PipeRead "yk-applications-menu"
 *ToolBox: (2x1, Right, Icon $./images/menu\_plus.png, Title (Side, Left) "Applications ", Action (Mouse 1) `Menu YKMenu rectangle $widthx$height+$left+$top +$widthp-5p +1>
 *ToolBox: (2x1, Title (Side, Left) "Preferences ", Action (Mouse 1) `Menu PrefsMenu rectangle $widthx$height+$left+$top +$widthp-5p +1p`)
 *ToolBox: (2x1, Right, Icon $./images/menu_plus.png, Title (Side, Left) "System ", Action (Mouse 1) `Menu SysMenu rectangle $widthx$height+$left+$top +$widthp-5p +1p`)
-*ToolBox: (3x1, Left, Padding 2 2, Swallow "stalonetray" `Exec stalonetray --parent-bg --icon-gravity NW --geometry 1x1+0+0 --icon-size 16`)
+*ToolBox: (3x1, Left, Padding 2 2, Swallow "stalonetray" `Exec stalonetray --parent-bg --icon-gravity NW --geometry 1x1+0+0 --kludges=force_icons_size --icon-size 16`)
 
 
 AddToMenu SysMenu

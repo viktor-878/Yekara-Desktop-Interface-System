@@ -9,6 +9,7 @@
 #include <Xm/CascadeB.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <X11/keysym.h>
 #include <X11/Xlib.h>
 #include <X11/xpm.h>
@@ -21,6 +22,41 @@
 #include <limits.h>
 
 Widget text_w;
+
+/* ---------------- File Helpers ---------------- */
+
+/* Load a file into the text widget. Returns 0 on success, -1 on failure. */
+static int load_file_into_text(const char *filename) {
+    FILE *fp = fopen(filename, "r");
+    if (!fp) {
+        perror(filename);
+        return -1;
+    }
+
+    fseek(fp, 0, SEEK_END);
+    long size = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+
+    if (size < 0) {
+        fprintf(stderr, "%s: cannot determine file size\n", filename);
+        fclose(fp);
+        return -1;
+    }
+
+    char *buffer = malloc(size + 1);
+    if (!buffer) {
+        fclose(fp);
+        return -1;
+    }
+
+    size_t n = fread(buffer, 1, size, fp);
+    buffer[n] = '\0';
+
+    XmTextSetString(text_w, buffer);
+    free(buffer);
+    fclose(fp);
+    return 0;
+}
 
 /* ---------------- File Menu Callbacks ---------------- */
 void save_callback(Widget w, XtPointer client_data, XtPointer call_data) {
@@ -50,22 +86,7 @@ void open_callback(Widget w, XtPointer client_data, XtPointer call_data) {
     if (cbs->reason == XmCR_OK) {
         char *filename;
         if (XmStringGetLtoR(cbs->value, XmFONTLIST_DEFAULT_TAG, &filename)) {
-
-            FILE *fp = fopen(filename, "r");
-            if (fp) {
-                fseek(fp, 0, SEEK_END);
-                long size = ftell(fp);
-                fseek(fp, 0, SEEK_SET);
-
-                char *buffer = malloc(size + 1);
-                fread(buffer, 1, size, fp);
-                buffer[size] = '\0';
-
-                XmTextSetString(text_w, buffer);
-                free(buffer);
-                fclose(fp);
-            }
-
+            load_file_into_text(filename);
             XtFree(filename);
         }
         XtUnmanageChild(w);
@@ -114,6 +135,33 @@ int main(int argc, char **argv) {
     Widget file_menu, edit_menu, file_cascade, edit_cascade, scrolled_w;
     Widget open_item, save_item, quit_item;
     Widget cut_item, copy_item, paste_item, select_all_item;
+    const char *open_path = NULL;
+
+    /* Parse and strip --open FILE / --open=FILE before the toolkit sees argv */
+    for (int i = 1; i < argc; i++) {
+        int consumed = 0;
+
+        if (strcmp(argv[i], "--open") == 0) {
+            if (i + 1 >= argc) {
+                fprintf(stderr, "Usage: %s [--open FILE]\n", argv[0]);
+                return 1;
+            }
+            open_path = argv[i + 1];
+            consumed = 2;
+        } else if (strncmp(argv[i], "--open=", 7) == 0) {
+            open_path = argv[i] + 7;
+            consumed = 1;
+        }
+
+        if (consumed) {
+            /* shift remaining args down over the consumed ones
+               (copies the trailing NULL too, keeping argv terminated) */
+            for (int j = i; j + consumed <= argc; j++)
+                argv[j] = argv[j + consumed];
+            argc -= consumed;
+            break;
+        }
+    }
 
     toplevel = YkInitWindow(&app, "XmTextEditor", &argc, argv);
     XtVaSetValues(toplevel, XmNwidth, 720, XmNheight, 480, NULL);
@@ -188,6 +236,10 @@ int main(int argc, char **argv) {
     XtManageChild(text_w);
     XtManageChild(scrolled_w);
 
+    /* Load the file given with --open, if any */
+    if (open_path)
+        load_file_into_text(open_path);
+
     /* Accelerators */
     XtVaSetValues(open_item, XmNaccelerator, "Ctrl<Key>O", XmNacceleratorText, XmStringCreateLocalized("Ctrl+O"), NULL);
     XtVaSetValues(save_item, XmNaccelerator, "Ctrl<Key>S", XmNacceleratorText, XmStringCreateLocalized("Ctrl+S"), NULL);
@@ -198,12 +250,6 @@ int main(int argc, char **argv) {
     XtVaSetValues(select_all_item, XmNaccelerator, "Ctrl<Key>A", XmNacceleratorText, XmStringCreateLocalized("Ctrl+A"), NULL);
 
     XtRealizeWidget(toplevel);
-
-    /* Hook into theme service after building the UI layout: the full
-       widget tree (form, menubar, both pulldown menus, scrolled window,
-       text widget) now exists, so this is the first point at which a
-       tree walk actually finds anything to theme. */
-    YkReloadResources(toplevel);
 
     XtAppMainLoop(app);
 

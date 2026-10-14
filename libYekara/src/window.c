@@ -159,6 +159,6 @@ YkInitWindow(
      * Initialize the Yekara resource/style system.
      */
     YkResourceSysInit(toplevel);
-
+    YkReloadResources(toplevel);
     return toplevel;
 }

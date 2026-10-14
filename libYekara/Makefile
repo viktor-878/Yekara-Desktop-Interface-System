@@ -16,7 +16,8 @@ LIB_SRC = \
 	$(SRC_DIR)/bundle.c \
 	$(SRC_DIR)/gzi.c \
 	$(SRC_DIR)/style.c \
-	$(SRC_DIR)/window.c
+	$(SRC_DIR)/window.c \
+	$(SRC_DIR)/entry.c
 
 LIB_OBJ = $(LIB_SRC:.c=.o)
 
@@ -26,15 +27,22 @@ RUNNER_SRC = runner/runner.c
 RUNNER_OBJ = $(RUNNER_SRC:.c=.o)
 RUNNER_BIN = yk-runner
 
+OPPENNER_SRC = runner/open.c
+OPPENNER_OBJ = $(OPPENNER_SRC:.c=.o)
+OPPENNER_BIN = yk-open-file
+
 # --- build ---
 
-all: $(LIB_NAME) $(RUNNER_BIN)
+all: $(LIB_NAME) $(RUNNER_BIN) $(OPPENNER_BIN)
 
 $(LIB_NAME): $(LIB_OBJ)
 	$(CC) -shared -o $@ $^ $(LDLIBS)
 
 $(RUNNER_BIN): $(RUNNER_OBJ) $(LIB_NAME)
 	$(CC) -o $@ $(RUNNER_OBJ) -L. -lyk $(LDLIBS)
+
+$(OPPENNER_BIN): $(OPPENNER_OBJ) $(LIB_NAME)
+	$(CC) -o $@ $(OPPENNER_OBJ) -L. -lyk $(LDLIBS)
 
 # --- generic compile rule ---
 
@@ -55,6 +63,7 @@ install:
 	cp $(LIB_NAME) $(DESTDIR)$(PREFIX)/lib
 	cp $(RUNNER_BIN) $(DESTDIR)$(PREFIX)/bin
 	cp $(INC_DIR)/yk/*.h $(DESTDIR)$(PREFIX)/include/yk
+	cp $(OPPENNER_BIN) $(DESTDIR)$(PREFIX)/bin
 
 # --- dev helper ---
 

@@ -1493,29 +1493,31 @@ static Boolean YkCreateDispatcher(
    MapNotify Xt dispatcher
 ---------------------------------------------------------- */
 
-static Boolean YkMapDispatcher(
-    XEvent *event)
+static Boolean YkMapDispatcher(XEvent *event)
 {
     Boolean result = False;
 
+    if (event && event->type == MapNotify) {
+        Window window = event->xmap.window;
+        Display *dpy = event->xmap.display;
 
-    /*
-     * Observe the event ourselves.
-     */
-    YkObserveMapNotify(
-        event
-    );
+        /* Discover and style newly mapped transients. */
+        YkObserveMapNotify(event);
 
+        /*
+         * Apply the cached theme to registered application
+         * shells after their widget trees have been built.
+         *
+         * Transients are handled by YkObserveMapNotify().
+         */
+        if (YkIsKnownWindow(window) &&
+            !YkFindTransient(window)) {
+            YkApplyThemeToWindow(dpy, window);
+        }
+    }
 
-    /*
-     * Let normal Xt processing continue.
-     */
     if (YkOldMapDispatcher)
-        result =
-            YkOldMapDispatcher(
-                event
-            );
-
+        result = YkOldMapDispatcher(event);
 
     return result;
 }
@@ -1986,7 +1988,6 @@ void YkResourceSysInit(
         YkDispatchersInstalled =
             1;
     }
-
 
     /*
      * Flush the setup.

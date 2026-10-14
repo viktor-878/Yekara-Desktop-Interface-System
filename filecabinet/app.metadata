@@ -1,0 +1,4 @@
+[Application Entry]
+ExecFile=filecabinet
+Icon=cabinet:cabinet
+
