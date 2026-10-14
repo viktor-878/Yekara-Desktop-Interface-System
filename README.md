@@ -1,6 +1,6 @@
-# Yekara Desktop Interface System
+# YeKara Desktop Interface System
 
-O Yekara é uma interface de desktop simples e experimental para Linux e X11, baseada no FVWM.
+O YeKara é uma interface de desktop simples e experimental para Linux e X11, baseada no FVWM.
 
 O projeto inclui configurações personalizadas, aplicativos leves em Motif/X11, utilitários, ícones, cursores e temas.
 
