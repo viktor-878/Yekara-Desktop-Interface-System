@@ -97,28 +97,56 @@ static int relative_path_is_safe(const char *rel) {
     return 1;
 }
 
+/* Case-insensitive lookup of a key inside [Application Entry]. */
+static const EntryNode *find_app_node(const EntryDocument *doc, const char *key)
+{
+    for (const EntrySection *s = doc->sections; s; s = s->next) {
+        if (strcasecmp(s->name, "Application Entry") != 0)
+            continue;
+        for (const EntryNode *n = s->entries; n; n = n->next)
+            if (strcasecmp(n->key, key) == 0)
+                return n;
+    }
+    return NULL;
+}
+
+/* "a", "b", "c" -> "a:b:c" (truncates safely, always NUL-terminated). */
+static void join_values(const EntryNode *n, char *out, size_t out_n)
+{
+    size_t used = 0;
+
+    if (out_n == 0)
+        return;
+    out[0] = '\0';
+
+    for (int i = 0; i < n->value_count; i++) {
+        int w = snprintf(out + used, out_n - used, "%s%s",
+                         i ? ":" : "", n->values[i]);
+        if (w < 0 || (size_t)w >= out_n - used)
+            return;
+        used += (size_t)w;
+    }
+}
+
 /*
  * Helper using the entry library's multi-value parsing for icons.
  */
 static int build_icon_path_from_entry(const char *bundle_path, const EntryNode *node,
-                                    char *out, size_t out_n)
+                                      char *out, size_t out_n)
 {
     char file[PATH_MAX_LEN];
-    const char *tag = "";
+    const char *tag = node->value_count > 1 ? node->values[1] : "";
 
-    if (node->is_multi) {
-        snprintf(file, sizeof(file), "%s", node->multi.value);
-        tag = node->multi.tag;
-    } else {
-        snprintf(file, sizeof(file), "%s", node->raw_value);
-    }
-
-    if (strlen(file) == 0)
+    if (snprintf(file, sizeof(file), "%s", node->values[0]) >= (int)sizeof(file))
         return 0;
 
     size_t fl = strlen(file);
+    if (fl == 0)
+        return 0;
+
     if (fl < 4 || strcmp(file + fl - 4, ".gzi") != 0) {
-        if (fl + 5 > sizeof(file)) return 0;
+        if (fl + 5 > sizeof(file))
+            return 0;
         strcat(file, ".gzi");
     }
 
@@ -126,7 +154,7 @@ static int build_icon_path_from_entry(const char *bundle_path, const EntryNode *
         return 0;
 
     int n;
-    if (tag && tag[0])
+    if (tag[0])
         n = snprintf(out, out_n, "%s/resources/%s:%s", bundle_path, file, tag);
     else
         n = snprintf(out, out_n, "%s/resources/%s", bundle_path, file);
@@ -284,23 +312,9 @@ int yk_parse(const char *bundle_path, ykApp *app) {
         return 1;
     }
 
-    const char *exec_file = get_entry_string(doc, "Application Entry", "ExecFile", "");
-    
-    EntrySection *sec = doc->sections;
-    EntryNode *icon_node = NULL;
-    while (sec) {
-        if (strcasecmp(sec->name, "Application Entry") == 0) {
-            EntryNode *n = sec->entries;
-            while (n) {
-                if (strcasecmp(n->key, "Icon") == 0) {
-                    icon_node = n;
-                    break;
-                }
-                n = n->next;
-            }
-        }
-        sec = sec->next;
-    }
+    const EntryNode *exec_node = find_app_node(doc, "ExecFile");
+    const char *exec_file = exec_node ? exec_node->values[0] : "";
+    const EntryNode *icon_node = find_app_node(doc, "Icon");
 
     if (!exec_file || exec_file[0] == '\0') {
         fprintf(stderr, "Error: ExecFile missing in metadata\n");
@@ -345,13 +359,13 @@ int yk_get_property(const char *bundle_path,
     EntryDocument *doc = parse_entry_file(meta_path);
     if (!doc) return 1;
 
-    const char *val = get_entry_string(doc, "Application Entry", key, NULL);
-    if (!val) {
+    const EntryNode *node = find_app_node(doc, key);
+    if (!node) {
         free_entry_document(doc);
         return 2;
     }
 
-    snprintf(out_value, out_size, "%s", val);
+    join_values(node, out_value, out_size);   /* multi-value -> "a:b:c" */
     free_entry_document(doc);
     return 0;
 }
@@ -420,7 +434,7 @@ static int bundle_filetypes(const char *bundle, ykFileType *types) {
                 EntryNode *n = sec->entries;
                 while (n) {
                     if (strcasecmp(n->key, "ExecFile") == 0 && !s.exec_rel[0]) {
-                        snprintf(s.exec_rel, sizeof(s.exec_rel), "%s", n->raw_value);
+                        snprintf(s.exec_rel, sizeof(s.exec_rel), "%s", n->values[0]);
                     }
                     n = n->next;
                 }
@@ -468,11 +482,11 @@ static int bundle_filetypes(const char *bundle, ykFileType *types) {
                 char file[PATH_MAX_LEN];
                 char tag[NAME_MAX_LEN];
 
-                if (!n->is_multi || !n->multi.tag[0]) {
-                    yk_warn("%s: [%s Entry] icon must look like \"file.gzi:tag\" - ignoring.", bundle, t->ext);
+                if (n->value_count < 2 || !n->values[1][0]) {
+                    yk_warn("%s: [%s Entry] icon must look like \"file.gzi:tag;\" - ignoring.", bundle, t->ext);
                 } else {
-                    snprintf(file, sizeof(file), "%s", n->multi.value);
-                    snprintf(tag, sizeof(tag), "%s", n->multi.tag);
+                    snprintf(file, sizeof(file), "%s", n->values[0]);
+                    snprintf(tag, sizeof(tag), "%s", n->values[1]);
 
                     // Ensure the icon filename ends with .gzi
                     size_t fl = strlen(file);
@@ -490,15 +504,15 @@ static int bundle_filetypes(const char *bundle, ykFileType *types) {
                     }
                 }
             } else if (strcasecmp(n->key, "handler") == 0) {
-                if (valid_token(n->raw_value))
-                    snprintf(t->handler, sizeof(t->handler), "%s", n->raw_value);
+                if (valid_token(n->values[0]))
+                    snprintf(t->handler, sizeof(t->handler), "%s", n->values[0]);
                 else
                     yk_warn("%s: handler invalid - using \"open\".", bundle);
             } else {
                 if (t->prop_count < YK_MAX_PROPS) {
                     ykProperty *pr = &t->props[t->prop_count++];
                     snprintf(pr->key, sizeof(pr->key), "%s", n->key);
-                    snprintf(pr->val, sizeof(pr->val), "%s", n->raw_value);
+                    join_values(n, pr->val, sizeof(pr->val));
                 }
             }
             n = n->next;
@@ -672,21 +686,7 @@ const char *yk_get_current_bundle_icon() {
     EntryDocument *doc = parse_entry_file(meta_path);
     if (!doc) return NULL;
 
-    EntrySection *sec = doc->sections;
-    EntryNode *icon_node = NULL;
-    while (sec) {
-        if (strcasecmp(sec->name, "Application Entry") == 0) {
-            EntryNode *n = sec->entries;
-            while (n) {
-                if (strcasecmp(n->key, "Icon") == 0) {
-                    icon_node = n;
-                    break;
-                }
-                n = n->next;
-            }
-        }
-        sec = sec->next;
-    }
+    const EntryNode *icon_node = find_app_node(doc, "Icon");
 
     if (!icon_node) {
         free_entry_document(doc);

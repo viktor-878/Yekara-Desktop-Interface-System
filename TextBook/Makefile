@@ -25,32 +25,32 @@ $(TARGET): $(OBJ) $(GZI_ICON) $(FILETYPES_ICON)
 	rm -f $(BUNDLE_DIR)/app.metadata
 	{ \
 		echo "[Application Entry]"; \
-		echo "ExecFile=$(APP_NAME)"; \
-		echo "Icon=$(ICON_NAME):textbook_xpm"; \
+		echo "ExecFile=$(APP_NAME);"; \
+		echo "Icon=$(ICON_NAME):textbook_xpm;"; \
 		echo ""; \
 		echo "[text Entry]"; \
-		echo "Icon=$(FILETYPES_NAME):text"; \
-		echo "Handler=open"; \
+		echo "Icon=$(FILETYPES_NAME):text;"; \
+		echo "Handler=open;"; \
 		echo ""; \
 		echo "[txt Entry]"; \
-		echo "Icon=$(FILETYPES_NAME):text"; \
-		echo "Handler=open"; \
+		echo "Icon=$(FILETYPES_NAME):text;"; \
+		echo "Handler=open;"; \
 		echo ""; \
 		echo "[c Entry]"; \
-		echo "Icon=$(FILETYPES_NAME):text"; \
-		echo "Handler=open"; \
+		echo "Icon=$(FILETYPES_NAME):text;"; \
+		echo "Handler=open;"; \
 		echo ""; \
 		echo "[h Entry]"; \
-		echo "Icon=$(FILETYPES_NAME):text"; \
-		echo "Handler=open"; \
+		echo "Icon=$(FILETYPES_NAME):text;"; \
+		echo "Handler=open;"; \
 		echo ""; \
 		echo "[metadata Entry]"; \
-		echo "Icon=$(FILETYPES_NAME):text"; \
-		echo "Handler=open"; \
+		echo "Icon=$(FILETYPES_NAME):text;"; \
+		echo "Handler=open;"; \
 		echo ""; \
 		echo "[meta Entry]"; \
-		echo "Icon=$(FILETYPES_NAME):text"; \
-		echo "Handler=open"; \
+		echo "Icon=$(FILETYPES_NAME):text;"; \
+		echo "Handler=open;"; \
 	} > $(BUNDLE_DIR)/app.metadata
 
 	rm -rf $(BUNDLE_DIR)/$(RESOURCES_DIR)

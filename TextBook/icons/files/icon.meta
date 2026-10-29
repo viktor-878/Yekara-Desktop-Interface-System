@@ -1,5 +1,5 @@
 [text]
-width=32
-height=32
-palette=file
-name=text
+width=32;
+height=32;
+palette=file;
+name=text;

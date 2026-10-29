@@ -52,34 +52,37 @@ int deskapp_read_icon(const char *bundle,
     if (!doc)
         return -1;
 
-    const EntryMultiValue *multi = NULL;
-    EntrySection *sec = doc->sections;
-    while (sec) {
-        if (strcasecmp(sec->name, "Application") == 0 ||
-            strcasecmp(sec->name, "Application Entry") == 0) {
-            EntryNode *n = sec->entries;
-            while (n) {
-                if (strcasecmp(n->key, "Icon") == 0) {
-                    if (n->is_multi)
-                        multi = &n->multi;
-                    break;
-                }
-                n = n->next;
+    /* Icon=file:tag;  needs at least two values */
+    const EntryNode *icon = NULL;
+    for (const EntrySection *sec = doc->sections; sec; sec = sec->next) {
+        if (strcasecmp(sec->name, "Application") != 0 &&
+            strcasecmp(sec->name, "Application Entry") != 0)
+            continue;
+
+        for (const EntryNode *n = sec->entries; n; n = n->next) {
+            if (strcasecmp(n->key, "Icon") == 0) {
+                icon = n;
+                break;
             }
         }
-        sec = sec->next;
     }
 
-    if (!multi || !multi->value || !multi->tag) {
+    if (!icon || icon->value_count < 2) {
         free_entry_document(doc);
         return -1;
     }
 
-    snprintf(out_file, out_file_n, "%s", multi->value);
-    if (!ends_with(out_file, ".gzi"))
+    snprintf(out_file, out_file_n, "%s", icon->values[0]);
+    if (!ends_with(out_file, ".gzi")) {
+        size_t len = strlen(out_file);
+        if (len + sizeof(".gzi") > out_file_n) {   /* no room for the suffix */
+            free_entry_document(doc);
+            return -1;
+        }
         strcat(out_file, ".gzi");
+    }
 
-    snprintf(out_tag, out_tag_n, "%s", multi->tag);
+    snprintf(out_tag, out_tag_n, "%s", icon->values[1]);
     free_entry_document(doc);
     return 0;
 }
@@ -102,3 +105,4 @@ Boolean bundle_relative_path_is_safe(const char *rel)
     }
     return True;
 }
+

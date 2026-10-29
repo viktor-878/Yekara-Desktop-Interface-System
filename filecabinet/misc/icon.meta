@@ -1,11 +1,11 @@
 [computer]
-width=59
-height=59
-name=computer
-palette=computer
+width=59;
+height=59;
+name=computer;
+palette=computer;
 
 [file]
-width=32
-height=32
-name=file
-palette=file
+width=32;
+height=32;
+name=file;
+palette=file;

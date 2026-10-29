@@ -3,20 +3,27 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <ctype.h>
 
-// Helper: Trim leading and trailing whitespace in-place
+/* Trim leading and trailing whitespace in-place */
 static char *trim_whitespace(char *str) {
-    char *end;
-    while(isspace((unsigned char)*str)) str++;
-    if(*str == 0) return str;
-    end = str + strlen(str) - 1;
-    while(end > str && isspace((unsigned char)*end)) end--;
+    while (isspace((unsigned char)*str)) str++;
+    if (*str == '\0') return str;
+    char *end = str + strlen(str) - 1;
+    while (end > str && isspace((unsigned char)*end)) end--;
     end[1] = '\0';
     return str;
 }
 
-// Free all memory associated with the document
+static void free_node(EntryNode *node) {
+    if (!node) return;
+    for (int i = 0; i < node->value_count; i++) free(node->values[i]);
+    free(node->values);
+    free(node->key);
+    free(node);
+}
+
 void free_entry_document(EntryDocument *doc) {
     if (!doc) return;
     EntrySection *sec = doc->sections;
@@ -25,13 +32,7 @@ void free_entry_document(EntryDocument *doc) {
         EntryNode *node = sec->entries;
         while (node) {
             EntryNode *next_node = node->next;
-            free(node->key);
-            free(node->raw_value);
-            if (node->is_multi) {
-                free(node->multi.value);
-                free(node->multi.tag);
-            }
-            free(node);
+            free_node(node);
             node = next_node;
         }
         free(sec->name);
@@ -41,145 +42,205 @@ void free_entry_document(EntryDocument *doc) {
     free(doc);
 }
 
-// Internal stream parser shared by both files and strings
+static EntrySection *new_section(const char *name) {
+    EntrySection *sec = calloc(1, sizeof(EntrySection));
+    if (!sec) return NULL;
+    sec->name = strdup(name);
+    if (!sec->name) { free(sec); return NULL; }
+    return sec;
+}
+/* Split "a:b:c" into trimmed, heap-allocated values.
+   An escaped colon (\:) is treated as a literal colon. */
+static char **split_values(char *val, int *count_out) {
+    int count = 1;
+    int escaped = 0;
+
+    for (char *p = val; *p; p++) {
+        if (escaped) {
+            escaped = 0;
+            continue;
+        }
+
+        if (*p == '\\') {
+            escaped = 1;
+            continue;
+        }
+
+        if (*p == ':') count++;
+    }
+
+    char **values = calloc(count, sizeof(char *));
+    if (!values) return NULL;
+
+    int i = 0;
+    char *start = val;
+    char *read = val;
+    char *write = val;
+
+    for (;;) {
+        if (*read == '\\' && read[1] == ':') {
+            *write++ = ':';
+            read += 2;
+        } else if (*read == ':' || *read == '\0') {
+            char delimiter = *read;
+            *write = '\0';
+
+            values[i] = strdup(trim_whitespace(start));
+            if (!values[i]) {
+                for (int j = 0; j < i; j++)
+                    free(values[j]);
+                free(values);
+                return NULL;
+            }
+
+            i++;
+
+            if (delimiter == '\0') break;
+
+            read++;
+            start = write = read;
+        } else {
+            *write++ = *read++;
+        }
+    }
+
+    *count_out = i;
+    return values;
+}
+
+/* Shared stream parser for files and strings */
 static EntryDocument *parse_entry_stream(FILE *file) {
     if (!file) return NULL;
 
-    EntryDocument *doc = malloc(sizeof(EntryDocument));
+    EntryDocument *doc = calloc(1, sizeof(EntryDocument));
     if (!doc) return NULL;
-    doc->sections = NULL;
-    
-    // Default global section for keys appearing before any [SectionHeader]
-    EntrySection *current_section = malloc(sizeof(EntrySection));
-    current_section->name = strdup("global");
-    current_section->entries = NULL;
-    current_section->next = NULL;
-    doc->sections = current_section;
 
-    char line[512];
-    while (fgets(line, sizeof(line), file)) {
+    EntrySection *current = new_section("global");
+    if (!current) { free(doc); return NULL; }
+    doc->sections = current;
+    EntrySection *sec_tail = current;
+    EntryNode *node_tail = NULL;
+
+    char *line = NULL;
+    size_t cap = 0;
+
+    while (getline(&line, &cap, file) != -1) {   /* no fixed line-length limit */
         char *trimmed = trim_whitespace(line);
 
-        // Skip comment lines and empty lines
-        if (trimmed[0] == '#' || trimmed[0] == ';' || trimmed[0] == '\0') {
+        /* Comments and blank lines */
+        if (trimmed[0] == '#' || trimmed[0] == '\0') continue;
+
+        /* Section header: [Name] */
+        size_t len = strlen(trimmed);
+        if (trimmed[0] == '[' && trimmed[len - 1] == ']') {
+            trimmed[len - 1] = '\0';
+            EntrySection *sec = new_section(trim_whitespace(trimmed + 1));
+            if (!sec) goto fail;
+            sec_tail->next = sec;
+            sec_tail = sec;
+            current = sec;
+            node_tail = NULL;
             continue;
         }
 
-        // Parse Section Header: [SectionName]
-        if (trimmed[0] == '[' && trimmed[strlen(trimmed) - 1] == ']') {
-            trimmed[strlen(trimmed) - 1] = '\0';
-            char *sec_name = trim_whitespace(trimmed + 1);
-
-            EntrySection *new_sec = malloc(sizeof(EntrySection));
-            new_sec->name = strdup(sec_name);
-            new_sec->entries = NULL;
-            new_sec->next = NULL;
-
-            // Append section to list
-            EntrySection *iter = doc->sections;
-            while (iter->next) iter = iter->next;
-            iter->next = new_sec;
-            current_section = new_sec;
-            continue;
-        }
-
-        // Parse Key = Value
+        /* Key=value1:value2:...; */
         char *eq = strchr(trimmed, '=');
-        if (eq) {
-            *eq = '\0';
-            char *key = trim_whitespace(trimmed);
-            char *val = trim_whitespace(eq + 1);
+        if (!eq) continue;
+        *eq = '\0';
+        char *key = trim_whitespace(trimmed);
+        char *val = eq + 1;
 
-            EntryNode *node = malloc(sizeof(EntryNode));
-            node->key = strdup(key);
-            node->raw_value = strdup(val);
-            node->next = NULL;
+        /* The first ';' terminates the entry; anything after it is ignored.
+           A missing terminator is tolerated. */
+        char *semi = strchr(val, ';');
+        if (semi) *semi = '\0';
 
-            // Check for multi-value tagged syntax (e.g., textbook:textbook_xpm)
-            char *colon = strchr(val, ':');
-            if (colon) {
-                *colon = '\0';
-                node->is_multi = 1;
-                node->multi.value = strdup(trim_whitespace(val));
-                node->multi.tag = strdup(trim_whitespace(colon + 1));
-            } else {
-                node->is_multi = 0;
-                node->multi.value = NULL;
-                node->multi.tag = NULL;
-            }
+        EntryNode *node = calloc(1, sizeof(EntryNode));
+        if (!node) goto fail;
+        node->key = strdup(key);
+        node->values = node->key ? split_values(val, &node->value_count) : NULL;
+        if (!node->values) { free_node(node); goto fail; }
 
-            // Append node to current section's entry list
-            if (!current_section->entries) {
-                current_section->entries = node;
-            } else {
-                EntryNode *n_iter = current_section->entries;
-                while (n_iter->next) n_iter = n_iter->next;
-                n_iter->next = node;
-            }
-        }
+        if (node_tail) node_tail->next = node;
+        else current->entries = node;
+        node_tail = node;
     }
 
+    free(line);
     return doc;
+
+fail:
+    free(line);
+    free_entry_document(doc);
+    return NULL;
 }
 
-// Parse any standard entry/INI file
 EntryDocument *parse_entry_file(const char *filename) {
     FILE *file = fopen(filename, "r");
-    if (!file) {
-        return NULL;
-    }
-
+    if (!file) return NULL;
     EntryDocument *doc = parse_entry_stream(file);
     fclose(file);
     return doc;
 }
 
-// Parse entry data directly from a memory string using fmemopen
 EntryDocument *parse_entry_string(const char *content) {
     if (!content) return NULL;
-
     FILE *file = fmemopen((void *)content, strlen(content), "r");
     if (!file) return NULL;
-
     EntryDocument *doc = parse_entry_stream(file);
     fclose(file);
     return doc;
 }
 
-// --- Query Helpers ---
+/* --- Query helpers --- */
 
 static EntryNode *find_node(EntryDocument *doc, const char *section, const char *key) {
-    if (!doc) return NULL;
-    EntrySection *sec = doc->sections;
-    while (sec) {
-        if (strcmp(sec->name, section) == 0) {
-            EntryNode *node = sec->entries;
-            while (node) {
-                if (strcmp(node->key, key) == 0) return node;
-                node = node->next;
-            }
-        }
-        sec = sec->next;
+    if (!doc || !section || !key) return NULL;
+    for (EntrySection *sec = doc->sections; sec; sec = sec->next) {
+        if (strcmp(sec->name, section) != 0) continue;
+        for (EntryNode *node = sec->entries; node; node = node->next)
+            if (strcmp(node->key, key) == 0) return node;
     }
     return NULL;
 }
 
-const char *get_entry_string(EntryDocument *doc, const char *section, const char *key, const char *default_val) {
+int get_entry_count(EntryDocument *doc, const char *section, const char *key) {
     EntryNode *node = find_node(doc, section, key);
-    if (!node) return default_val;
-    return node->is_multi ? node->multi.value : node->raw_value;
+    return node ? node->value_count : 0;
 }
 
-int get_entry_int(EntryDocument *doc, const char *section, const char *key, int default_val) {
+const char *get_entry_value(EntryDocument *doc, const char *section,
+                            const char *key, int index, const char *default_val) {
+    EntryNode *node = find_node(doc, section, key);
+    if (!node || index < 0 || index >= node->value_count) return default_val;
+    return node->values[index];
+}
+
+const char *get_entry_string(EntryDocument *doc, const char *section,
+                             const char *key, const char *default_val) {
+    return get_entry_value(doc, section, key, 0, default_val);
+}
+
+int get_entry_int(EntryDocument *doc, const char *section,
+                  const char *key, int default_val) {
     const char *str = get_entry_string(doc, section, key, NULL);
-    if (!str) return default_val;
-    return atoi(str);
+    return (str && *str) ? atoi(str) : default_val;
 }
 
-const EntryMultiValue *get_entry_multi(EntryDocument *doc, const char *section, const char *key) {
+int get_entry_bool(EntryDocument *doc, const char *section,
+                   const char *key, int default_val) {
+    const char *s = get_entry_string(doc, section, key, NULL);
+    if (!s) return default_val;
+    if (!strcasecmp(s, "true") || !strcasecmp(s, "yes") ||
+        !strcasecmp(s, "on")   || !strcmp(s, "1")) return 1;
+    if (!strcasecmp(s, "false") || !strcasecmp(s, "no") ||
+        !strcasecmp(s, "off")   || !strcmp(s, "0")) return 0;
+    return default_val;
+}
+
+const char *const *get_entry_values(EntryDocument *doc, const char *section,
+                                    const char *key, int *count) {
     EntryNode *node = find_node(doc, section, key);
-    if (node && node->is_multi) {
-        return &node->multi;
-    }
-    return NULL;
+    if (count) *count = node ? node->value_count : 0;
+    return node ? (const char *const *)node->values : NULL;
 }

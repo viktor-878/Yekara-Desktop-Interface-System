@@ -76,6 +76,19 @@ $(BUILD_DIR):
 
 # ---- bundle assembly -------------------------------------------------------
 
+.PHONY: icons
+
+icons:
+	@for dir in folder cabinet misc; do \
+		if [ -d "$$dir" ]; then \
+			tar -czf "$(RES_DIR)/$$dir.gzi" -C "$$dir" . && \
+			echo "Created $(RES_DIR)/$$dir.gzi"; \
+		else \
+			echo "Error: $$dir not found" >&2; \
+			exit 1; \
+		fi; \
+	done
+
 bundle: $(BUNDLE)/$(TARGET) $(BUNDLE)/app.metadata $(RES_STAMP)
 	@grep -q '^ExecFile=$(TARGET)[[:space:]]*$$' $(APP_METADATA) || \
 	  echo "warning: $(APP_METADATA) ExecFile= does not match '$(TARGET)'"

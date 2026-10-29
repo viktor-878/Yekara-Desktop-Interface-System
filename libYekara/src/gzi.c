@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <archive.h>
 #include <archive_entry.h>
 #include "yk/entry.h" // Unified configuration parser
@@ -90,13 +91,13 @@ static GZI_Meta parse_meta_sections(char *data) {
             EntryNode *n = sec->entries;
             while (n) {
                 if (strcasecmp(n->key, "width") == 0) {
-                    cur->width = atoi(n->raw_value);
+                    cur->width = atoi(n->values[0]);
                 } else if (strcasecmp(n->key, "height") == 0) {
-                    cur->height = atoi(n->raw_value);
+                    cur->height = atoi(n->values[0]);
                 } else if (strcasecmp(n->key, "palette") == 0) {
-                    snprintf(cur->palette_file, sizeof(cur->palette_file), "%s.opal", n->raw_value);
+                    snprintf(cur->palette_file, sizeof(cur->palette_file), "%s.opal", n->values[0]);
                 } else if (strcasecmp(n->key, "name") == 0) {
-                    snprintf(cur->pxmap_file, sizeof(cur->pxmap_file), "%s.pxmap", n->raw_value);
+                    snprintf(cur->pxmap_file, sizeof(cur->pxmap_file), "%s.pxmap", n->values[0]);
                 }
                 n = n->next;
             }

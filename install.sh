@@ -10,10 +10,7 @@ cp YK_GLOBAL_ENVVARS /etc/profile.d/YK_VARS.sh
 # binaries
 install -d "$PREFIX/bin"
 
-install -m755 scripts/yekara "$PREFIX/bin/"
 install -m755 scripts/YKBackdrop "$PREFIX/bin"
-install -m755 scripts/readXColors "$PREFIX/bin/"
-install -m755 scripts/YKAnimateIterationEvaluate "$PREFIX/bin/"
 
 # library
 cd libYekara
@@ -43,9 +40,7 @@ install -d "/applications"
 make install
 cd ..
 
-# FVWM configuration
-install -d "$PREFIX/share/yekara"
-cp -r FVWMDEFS/* "$PREFIX/share/yekara"
+# FVWM configuration | MOVED TO YKWM
 
 # cursors
 rm -rf "$PREFIX/share/icons/yekara-cursors"

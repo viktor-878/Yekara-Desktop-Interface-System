@@ -1,4 +1,3 @@
 [Application Entry]
-ExecFile=filecabinet
-Icon=cabinet:cabinet
-
+ExecFile=filecabinet;
+Icon=cabinet:cabinet;

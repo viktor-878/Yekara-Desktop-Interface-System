@@ -53,8 +53,8 @@ ykclock.o: ykclock.c /usr/include/stdc-predef.h /usr/include/sys/select.h \
  /usr/include/X11/Xatom.h /usr/include/X11/Xlib.h /usr/include/X11/X.h \
  /usr/include/X11/Xfuncproto.h /usr/include/X11/Xosdefs.h \
  /usr/include/X11/xpm.h /usr/include/X11/Xutil.h \
- /usr/include/X11/keysym.h /usr/include/X11/keysymdef.h \
- /usr/include/X11/extensions/shape.h \
+ /usr/include/X11/Xresource.h /usr/include/X11/keysym.h \
+ /usr/include/X11/keysymdef.h /usr/include/X11/extensions/shape.h \
  /usr/include/X11/extensions/shapeconst.h dynlist.h \
  lang.english/month.xpm lang.english/weekday.xpm xpm/date.xpm xpm/led.xpm \
  xpm/mask.xbm xpm/mask.xpm
@@ -161,6 +161,7 @@ ykclock.o: ykclock.c /usr/include/stdc-predef.h /usr/include/sys/select.h \
 /usr/include/X11/Xosdefs.h:
 /usr/include/X11/xpm.h:
 /usr/include/X11/Xutil.h:
+/usr/include/X11/Xresource.h:
 /usr/include/X11/keysym.h:
 /usr/include/X11/keysymdef.h:
 /usr/include/X11/extensions/shape.h:

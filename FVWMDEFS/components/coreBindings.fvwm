@@ -1,8 +1,0 @@
-AddToFunc WinShortcutHandler
-+ I ThisWindow (!ToolBox) Close
-
-# Close a window (Super+Q)
-Key Q	A	4 WinShortcutHandler
-
-# Iconify a window (Super I)
-Key I	W	4 Iconify

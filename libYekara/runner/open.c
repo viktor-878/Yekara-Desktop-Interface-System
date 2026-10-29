@@ -97,6 +97,24 @@ static void get_base_section_name(const char *raw_name, char *out, size_t out_le
     }
 }
 
+/* "a", "b", "c" -> "a:b:c" (truncates safely, always NUL-terminated). */
+static void join_values(const EntryNode *n, char *out, size_t out_n)
+{
+    size_t used = 0;
+
+    if (out_n == 0)
+        return;
+    out[0] = '\0';
+
+    for (int i = 0; i < n->value_count; i++) {
+        int w = snprintf(out + used, out_n - used, "%s%s",
+                         i ? ":" : "", n->values[i]);
+        if (w < 0 || (size_t)w >= out_n - used)
+            return;
+        used += (size_t)w;
+    }
+}
+
 /*
  * Load handler details for a given file extension from a bundle using entry.h
  */
@@ -121,7 +139,7 @@ static int load_handler_from_bundle(const char *bundle_path, const char *ext, Ha
             EntryNode *n = sec->entries;
             while (n) {
                 if (strcasecmp(n->key, "ExecFile") == 0) {
-                    snprintf(exec_rel, sizeof(exec_rel), "%s", n->raw_value);
+                    snprintf(exec_rel, sizeof(exec_rel), "%s", n->values[0]);
                 }
                 n = n->next;
             }
@@ -160,10 +178,10 @@ static int load_handler_from_bundle(const char *bundle_path, const char *ext, Ha
                 if (strcasecmp(n->key, "icon") == 0) {
                     // Ignored here (file manager concern)
                 } else if (strcasecmp(n->key, "handler") == 0) {
-                    if (valid_token(n->raw_value))
-                        snprintf(h->handler, sizeof(h->handler), "%s", n->raw_value);
+                    if (valid_token(n->values[0]))
+                        snprintf(h->handler, sizeof(h->handler), "%s", n->values[0]);
                     else
-                        warn("%s: [%s Entry] handler=\"%s\" must be a valid token - using \"open\".", bundle_path, ext, n->raw_value);
+                        warn("%s: [%s Entry] handler=\"%s\" must be a valid token - using \"open\".", bundle_path, ext, n->values[0]);
                 } else if (!valid_token(n->key)) {
                     warn("%s: [%s Entry] property name \"%s\" is invalid - ignoring.", bundle_path, ext, n->key);
                 } else if (h->nprops >= MAX_PROPS) {
@@ -171,7 +189,7 @@ static int load_handler_from_bundle(const char *bundle_path, const char *ext, Ha
                 } else {
                     Prop *pr = &h->props[h->nprops++];
                     snprintf(pr->key, sizeof(pr->key), "%s", n->key);
-                    snprintf(pr->val, sizeof(pr->val), "%s", n->raw_value);
+                    join_values(n, pr->val, sizeof(pr->val));
                 }
                 n = n->next;
             }
