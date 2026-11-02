@@ -78,7 +78,7 @@ Widget create_entry(Widget parent, const char *name,
     XtSetArg(args[n], XmNlabelString, label);             n++;
     XtSetArg(args[n], XmNviewType, view_type);            n++;
     XtSetArg(args[n], XmNuserData, (XtPointer)name_copy); n++;
-
+    XtSetArg(args[n], XmNshadowThickness, 0); n++;
     if (icon_valid) {
         XtSetArg(args[n], XmNlargeIconPixmap, icon); n++;
         XtSetArg(args[n], XmNsmallIconPixmap, icon); n++;

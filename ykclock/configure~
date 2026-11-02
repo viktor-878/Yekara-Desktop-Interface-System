@@ -4816,9 +4816,6 @@ printf '%s\n' "no" >&6; }
 		PKG_CONFIG=""
 	fi
 fi
-if test -z "$PKG_CONFIG"; then
-	as_fn_error $? "pkg-config not found" "$LINENO" 5
-fi
 
 pkg_failed=no
 { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking for x11" >&5
@@ -4893,7 +4890,7 @@ elif test $pkg_failed = untried; then
 printf '%s\n' "no" >&6; }
         { { printf '%s\n' "$as_me:${as_lineno-$LINENO}: error: in '$ac_pwd':" >&5
 printf '%s\n' "$as_me: error: in '$ac_pwd':" >&2;}
-as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
+as_fn_error $? "A pkg-config implementation could not be found or is too old.  Make sure it
 is in your PATH or set the PKG_CONFIG environment variable to the full
 path to pkg-config.
 
@@ -4901,7 +4898,7 @@ Alternatively, you may set the environment variables x11_CFLAGS
 and x11_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details.
 
-To get pkg-config, see <http://pkg-config.freedesktop.org/>.
+To get a pkg-config implementation, see <http://github.com/pkgconf/pkgconf>.
 See 'config.log' for more details" "$LINENO" 5; }
 else
         x11_CFLAGS=$pkg_cv_x11_CFLAGS
@@ -4984,7 +4981,7 @@ elif test $pkg_failed = untried; then
 printf '%s\n' "no" >&6; }
         { { printf '%s\n' "$as_me:${as_lineno-$LINENO}: error: in '$ac_pwd':" >&5
 printf '%s\n' "$as_me: error: in '$ac_pwd':" >&2;}
-as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
+as_fn_error $? "A pkg-config implementation could not be found or is too old.  Make sure it
 is in your PATH or set the PKG_CONFIG environment variable to the full
 path to pkg-config.
 
@@ -4992,7 +4989,7 @@ Alternatively, you may set the environment variables xpm_CFLAGS
 and xpm_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details.
 
-To get pkg-config, see <http://pkg-config.freedesktop.org/>.
+To get a pkg-config implementation, see <http://github.com/pkgconf/pkgconf>.
 See 'config.log' for more details" "$LINENO" 5; }
 else
         xpm_CFLAGS=$pkg_cv_xpm_CFLAGS
@@ -5075,7 +5072,7 @@ elif test $pkg_failed = untried; then
 printf '%s\n' "no" >&6; }
         { { printf '%s\n' "$as_me:${as_lineno-$LINENO}: error: in '$ac_pwd':" >&5
 printf '%s\n' "$as_me: error: in '$ac_pwd':" >&2;}
-as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
+as_fn_error $? "A pkg-config implementation could not be found or is too old.  Make sure it
 is in your PATH or set the PKG_CONFIG environment variable to the full
 path to pkg-config.
 
@@ -5083,7 +5080,7 @@ Alternatively, you may set the environment variables xext_CFLAGS
 and xext_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details.
 
-To get pkg-config, see <http://pkg-config.freedesktop.org/>.
+To get a pkg-config implementation, see <http://github.com/pkgconf/pkgconf>.
 See 'config.log' for more details" "$LINENO" 5; }
 else
         xext_CFLAGS=$pkg_cv_xext_CFLAGS

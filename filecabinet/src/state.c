@@ -17,7 +17,7 @@ Boolean is_moving_file  = False;
 Boolean is_copying_file = False;
 
 int     last_item_count = 0;
-Boolean use_icon_view   = False;
+Boolean use_icon_view   = True;
 Boolean show_hidden     = False;
 
 Pixmap iconFolder, iconFolderMask;

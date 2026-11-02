@@ -2,6 +2,7 @@
 #define FM_STATE_H
 
 #include <limits.h>
+#include <stdbool.h>
 #include <Xm/Xm.h>
 #include "types.h"
 

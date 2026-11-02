@@ -18,9 +18,6 @@ make -lXm -lXt -lX11
 make install PREFIX="$PREFIX"
 cd ..
 
-gcc CSRC/sessionDiag.c -o "$PREFIX/bin/ykSessionDialog" -lXm -lXt -lX11 -lyk -larchive -lm
-gcc CSRC/yk-applications-menu.c -o "$PREFIX/bin/yk-applications-menu"
-
 cd ykclock
 ./configure
 make
