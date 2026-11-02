@@ -52,7 +52,7 @@ $(OPPENNER_BIN): $(OPPENNER_OBJ) $(LIB_NAME)
 # --- cleanup ---
 
 clean:
-	rm -f $(LIB_OBJ) $(RUNNER_OBJ) $(LIB_NAME) $(RUNNER_BIN)
+	rm -f $(LIB_OBJ) $(RUNNER_OBJ) $(LIB_NAME) $(RUNNER_BIN) $(OPPENNER_OBJ) $(OPPENNER_BIN)
 
 # --- install ---
 
