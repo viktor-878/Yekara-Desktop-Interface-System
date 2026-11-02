@@ -213,7 +213,7 @@ static int find_handler(const char *ext, Handler *h)
     return 0;
 }
 
-static int spawn_detached(const char *bundle, char *const argv[], char *err, size_t err_n)
+static int spawn_detached(char *const argv[], char *err, size_t err_n)
 {
     int pfd[2];
     if (pipe(pfd) != 0) {
@@ -234,12 +234,7 @@ static int spawn_detached(const char *bundle, char *const argv[], char *err, siz
         close(pfd[0]);
         setsid();
 
-        if (chdir(bundle) != 0) {
-            int e = errno;
-            ssize_t w = write(pfd[1], &e, sizeof(e));
-            (void)w;
-            _exit(127);
-        }
+        
 
         int fd = open("/dev/null", O_RDWR);
         if (fd >= 0) {
@@ -391,7 +386,7 @@ int main(int argc, char **argv)
     }
 
     char err[256];
-    if (spawn_detached(h.bundle, cmd, err, sizeof(err)) != 0)
+    if (spawn_detached(cmd, err, sizeof(err)) != 0)
         fail(EXIT_LAUNCH_ERR, "%s", err);
 
     return 0;
