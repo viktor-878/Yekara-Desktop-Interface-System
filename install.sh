@@ -37,6 +37,14 @@ install -d "/applications"
 make install
 cd ..
 
+rm -rf /applications/"Command Center.deskapp"
+
+cd "Command Center"
+make
+install -d "/applications"
+make install
+cd ..
+
 # FVWM configuration | MOVED TO YKWM
 
 # cursors
