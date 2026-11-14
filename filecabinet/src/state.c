@@ -1,5 +1,7 @@
 #include "state.h"
 
+Boolean desktop_mode = False;
+
 char current_path[PATH_MAX] = "/";
 
 Widget toplevel_widget      = NULL;

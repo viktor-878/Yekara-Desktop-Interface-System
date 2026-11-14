@@ -6,6 +6,10 @@
 #include <Xm/Xm.h>
 #include "types.h"
 
+/* True when running as the desktop window (--desktop): current_path is then
+ * the desktop folder and never changes. */
+extern Boolean desktop_mode;
+
 /* Current directory */
 extern char current_path[PATH_MAX];
 

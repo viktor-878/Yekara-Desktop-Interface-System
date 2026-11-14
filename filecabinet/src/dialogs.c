@@ -12,6 +12,7 @@
 
 #include "dialogs.h"
 #include "deskapp.h"
+#include "entries.h"
 #include "fsops.h"
 #include "state.h"
 #include "util.h"
@@ -26,6 +27,19 @@ static void destroy_dialog(Widget box)
 static void generic_dialog_destroy_cb(Widget w, XtPointer client_data, XtPointer call_data)
 {
     destroy_dialog(w);
+}
+
+/*
+ * Rename/delete act on the item that was selected when the dialog was OPENED,
+ * not on whatever is selected when OK is pressed. The name is copied here and
+ * freed when the dialog is destroyed.
+ */
+static char *bind_target(Widget dialog, const char *name)
+{
+    char *copy = strdup(name);
+    if (copy)
+        XtAddCallback(dialog, XmNdestroyCallback, free_payload_destroy_cb, copy);
+    return copy;
 }
 
 /* ---- Error ------------------------------------------------------------- */
@@ -54,18 +68,25 @@ static void rename_dialog_ok_cb(Widget w, XtPointer client_data, XtPointer call_
     XmSelectionBoxCallbackStruct *cbs = (XmSelectionBoxCallbackStruct *)call_data;
     char *new_name = NULL;
 
+    const char *target = (const char *)client_data;   /* see bind_target() */
+
+    if (!target || target[0] == '\0') {
+        destroy_dialog(w);
+        return;
+    }
+
     if (XmStringGetLtoR(cbs->value, XmFONTLIST_DEFAULT_TAG, &new_name) &&
         new_name && strlen(new_name) > 0) {
 
         char old_path[PATH_MAX * 2];
         char new_path[PATH_MAX * 2];
 
-        join_path(old_path, sizeof(old_path), current_path, selected_node_name);
+        join_path(old_path, sizeof(old_path), current_path, target);
         join_path(new_path, sizeof(new_path), current_path, new_name);
 
         if (strchr(new_name, '/') || !strcmp(new_name, ".") || !strcmp(new_name, "..")) {
             show_error_dialog(w, "Invalid name.");
-        } else if (strcmp(new_name, selected_node_name) != 0 && path_exists(new_path)) {
+        } else if (strcmp(new_name, target) != 0 && path_exists(new_path)) {
             show_error_dialog(w, "An item with that name already exists.");
         } else if (rename(old_path, new_path) != 0) {
             show_error_dialog(w, "Could not rename item.");
@@ -85,12 +106,13 @@ void show_rename_dialog(Widget parent)
     if (strlen(selected_node_name) == 0 || strcmp(selected_node_name, "..") == 0)
         return;
 
-    Arg args[2];
+    Arg args[3];
     int n = 0;
 
     XmString title = XmStringCreateLocalized("Rename Item");
     XtSetArg(args[n], XmNdialogTitle, title); n++;
     XtSetArg(args[n], XmNautoUnmanage, False); n++;
+    XtSetArg(args[n], XmNdialogStyle, XmDIALOG_PRIMARY_APPLICATION_MODAL); n++;
 
     Widget dialog = XmCreatePromptDialog(toplevel_widget, "renameDialog", args, n);
     XmStringFree(title);
@@ -101,7 +123,8 @@ void show_rename_dialog(Widget parent)
     XtVaSetValues(dialog, XmNtextString, defText, NULL);
     XmStringFree(defText);
 
-    XtAddCallback(dialog, XmNokCallback, rename_dialog_ok_cb, NULL);
+    XtAddCallback(dialog, XmNokCallback, rename_dialog_ok_cb,
+                  (XtPointer)bind_target(dialog, selected_node_name));
     XtAddCallback(dialog, XmNcancelCallback, generic_dialog_destroy_cb, NULL);
     XtManageChild(dialog);
 }
@@ -136,12 +159,13 @@ static void new_folder_dialog_ok_cb(Widget w, XtPointer client_data, XtPointer c
 
 void show_new_folder_dialog(Widget parent)
 {
-    Arg args[2];
+    Arg args[3];
     int n = 0;
 
     XmString title = XmStringCreateLocalized("New Folder");
     XtSetArg(args[n], XmNdialogTitle, title); n++;
     XtSetArg(args[n], XmNautoUnmanage, False); n++;
+    XtSetArg(args[n], XmNdialogStyle, XmDIALOG_PRIMARY_APPLICATION_MODAL); n++;
 
     Widget dialog = XmCreatePromptDialog(toplevel_widget, "newFolderDialog", args, n);
     XmStringFree(title);
@@ -161,8 +185,16 @@ void show_new_folder_dialog(Widget parent)
 
 static void delete_confirm_ok_cb(Widget w, XtPointer client_data, XtPointer call_data)
 {
+    const char *name = (const char *)client_data;     /* see bind_target() */
+
+    /* An empty name would resolve to current_path itself: never delete that. */
+    if (!name || name[0] == '\0' || strcmp(name, "..") == 0) {
+        destroy_dialog(w);
+        return;
+    }
+
     char target[PATH_MAX * 2];
-    join_path(target, sizeof(target), current_path, selected_node_name);
+    join_path(target, sizeof(target), current_path, name);
 
     if (remove_recursive(target) != 0)
         show_error_dialog(w, "Could not delete item.");
@@ -180,19 +212,21 @@ void show_delete_confirm_dialog(Widget parent)
     char message[512];
     snprintf(message, sizeof(message), "Permanently delete \"%s\"?", selected_node_name);
 
-    Arg args[2];
+    Arg args[3];
     int n = 0;
 
     XmString msgStr = XmStringCreateLocalized(message);
     XtSetArg(args[n], XmNmessageString, msgStr); n++;
     XtSetArg(args[n], XmNautoUnmanage, False); n++;
+    XtSetArg(args[n], XmNdialogStyle, XmDIALOG_PRIMARY_APPLICATION_MODAL); n++;
 
     Widget dialog = XmCreateQuestionDialog(toplevel_widget, "deleteConfirmDialog", args, n);
     XmStringFree(msgStr);
 
     XtUnmanageChild(XmMessageBoxGetChild(dialog, XmDIALOG_HELP_BUTTON));
 
-    XtAddCallback(dialog, XmNokCallback, delete_confirm_ok_cb, NULL);
+    XtAddCallback(dialog, XmNokCallback, delete_confirm_ok_cb,
+                  (XtPointer)bind_target(dialog, selected_node_name));
     XtAddCallback(dialog, XmNcancelCallback, generic_dialog_destroy_cb, NULL);
     XtManageChild(dialog);
 }

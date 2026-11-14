@@ -116,3 +116,42 @@ void open_with_default_app(const char *path)
         _exit(127);
     }
 }
+
+Boolean spawn_file_manager(const char *dir, char *err, size_t err_n)
+{
+    char exe[PATH_MAX];
+    ssize_t len = readlink("/proc/self/exe", exe, sizeof(exe) - 1);
+
+    if (len <= 0) {
+        snprintf(err, err_n, "Could not locate the File Cabinet executable.");
+        return False;
+    }
+    exe[len] = '\0';
+
+    pid_t pid = fork();
+    if (pid < 0) {
+        snprintf(err, err_n, "Could not launch: %s", strerror(errno));
+        return False;
+    }
+
+    if (pid == 0) {
+        setsid();
+        signal(SIGCHLD, SIG_DFL);
+
+        /* main() opens the process's working directory, so just go there. */
+        if (chdir(dir) != 0)
+            _exit(127);
+
+        int fd = open("/dev/null", O_RDWR);
+        if (fd >= 0) {
+            dup2(fd, 0); dup2(fd, 1); dup2(fd, 2);
+            if (fd > 2) close(fd);
+        }
+
+        extern char **environ;
+        execve(exe, (char *[]){exe, NULL}, environ);
+        _exit(127);
+    }
+
+    return True;
+}

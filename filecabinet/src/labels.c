@@ -5,11 +5,19 @@
 #include "config.h"
 #include "state.h"
 
+static Widget font_source = NULL;
+
+void label_set_font_source(Widget w)
+{
+    font_source = w;
+}
+
 XmFontList label_fontlist(void)
 {
     XmFontList fl = NULL;
-    if (statusLabel)
-        XtVaGetValues(statusLabel, XmNfontList, &fl, NULL);
+    Widget src = statusLabel ? statusLabel : font_source;
+    if (src)
+        XtVaGetValues(src, XmNfontList, &fl, NULL);
     return fl;
 }
 

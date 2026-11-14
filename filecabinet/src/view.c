@@ -11,6 +11,7 @@
 #include "view.h"
 #include "config.h"
 #include "deskapp.h"
+#include "desktop.h"
 #include "entries.h"
 #include "fsops.h"
 #include "icons.h"
@@ -438,6 +439,11 @@ void breadcrumb_resize_handler(Widget w, XtPointer client,
 
 void render_view(void)
 {
+    if (desktop_mode) {
+        desktop_render();
+        return;
+    }
+
     save_spatial_positions();
     selected_node_name[0] = '\0';
 

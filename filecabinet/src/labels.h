@@ -7,6 +7,9 @@
 /* Font list used for measuring label text (taken from the status label). */
 XmFontList label_fontlist(void);
 
+/* Widget to take the font from when there is no status bar (desktop mode). */
+void label_set_font_source(Widget w);
+
 /* Truncates `s` with "..." so it fits in max_w pixels. */
 void ellipsize_text(XmFontList fl, const char *s, int max_w,
                     char *out, size_t n);

@@ -10,6 +10,7 @@
 #include "config.h"
 #include "deskapp.h"
 #include "dialogs.h"
+#include "desktop.h"
 #include "launch.h"
 #include "state.h"
 #include "util.h"
@@ -75,11 +76,22 @@ void change_directory(const char *target_node)
         join_path(pending, sizeof(pending), current_path, target_node);
     }
 
+    /* The desktop never navigates: folders open in their own window. */
+    if (desktop_mode) {
+        desktop_open_folder(pending);
+        return;
+    }
+
     navigate_to(pending, True);
 }
 
 void activate_item(const char *name)
 {
+    if (desktop_mode) {
+        desktop_activate(name);
+        return;
+    }
+
     if (strcmp(name, "..") == 0 || name[0] == '/') {
         change_directory(name);
         return;

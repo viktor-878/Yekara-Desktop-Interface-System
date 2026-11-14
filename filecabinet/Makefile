@@ -1,17 +1,19 @@
 # ---------------------------------------------------------------------------
-# FileCabinet - Motif file manager, packaged as a .deskapp bundle
+# File Cabinet - Motif file manager, packaged as a .deskapp bundle
 #
-#   make            build ./File Cabinet.deskapp/
-#   make run        build the bundle and run it from inside the bundle
-#   make debug      clean rebuild with ASan/UBSan, then bundle
-#   make install    copy the bundle to $(APPS_DIR)
-#   make clean      remove objects, binary and the bundle
+#   make          build ./File Cabinet.deskapp/
+#   make run      build the bundle and run it from inside the bundle
+#   make debug    clean rebuild with ASan/UBSan, then bundle
+#   make run-desktop  same, but as the desktop window (--desktop)
+#   make install  copy the bundle to $(APPS_DIR)
+#   make clean    remove objects, binary and the bundle
 #
 # Bundle layout produced:
 #   File Cabinet.deskapp/
-#     app.metadata      <- copied from ./app.metadata
-#     filecabinet       <- the compiled binary (must match ExecFile=)
-#     resources/        <- copied from ./resources (all .gzi icons)
+#      app.metadata      <- copied from ./app.metadata
+#      filecabinet       <- the compiled binary (must match ExecFile=)
+#      resources/        <- copied from ./resources (all .gzi icons)
+#      preferences/      <- copied from ./preferences
 #
 # Overridable variables (examples):
 #   make YK_LIBS="-L/opt/yk/lib -lyk" YK_CFLAGS="-I/opt/yk/include"
@@ -29,6 +31,7 @@ DIST_DIR  := .
 
 APP_METADATA := app.metadata
 RES_DIR      := resources
+PREFS_DIR    := preferences
 
 # The bundle name contains a space, so make needs it backslash-escaped in
 # targets/prerequisites (BUNDLE), and recipes must quote "$@" and "$<".
@@ -47,6 +50,8 @@ YK_LIBS   ?= -lyk
 MOTIF_CFLAGS ?=
 MOTIF_LIBS   ?= -lXm -lXt -lXpm -lX11
 
+PREFS_FILE=preferences/desktop.entry # install this to $HOME/preferences/file-cabinet/desktop.entry in all users
+
 CFLAGS   ?= -O2 -g
 CFLAGS   += -std=gnu11 -Wall -Wextra -Wno-unused-parameter
 CPPFLAGS += -I$(SRC_DIR) $(YK_CFLAGS) $(MOTIF_CFLAGS)
@@ -55,10 +60,14 @@ LDLIBS   += $(YK_LIBS) $(MOTIF_LIBS)
 SRCS      := $(wildcard $(SRC_DIR)/*.c)
 OBJS      := $(SRCS:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
 DEPS      := $(OBJS:.o=.d)
+
 RES_FILES := $(shell find $(RES_DIR) -type f 2>/dev/null)
 RES_STAMP := $(BUILD_DIR)/resources.stamp
 
-.PHONY: all bundle debug run install clean
+PREFS_FILES := $(shell find $(PREFS_DIR) -type f 2>/dev/null)
+PREFS_STAMP := $(BUILD_DIR)/preferences.stamp
+
+.PHONY: all bundle debug run run-desktop install clean
 
 all: bundle
 
@@ -89,7 +98,7 @@ icons:
 		fi; \
 	done
 
-bundle: $(BUNDLE)/$(TARGET) $(BUNDLE)/app.metadata $(RES_STAMP)
+bundle: $(BUNDLE)/$(TARGET) $(BUNDLE)/app.metadata $(RES_STAMP) $(PREFS_STAMP)
 	@grep -q '^ExecFile=$(TARGET)[[:space:]]*$$' $(APP_METADATA) || \
 	  echo "warning: $(APP_METADATA) ExecFile= does not match '$(TARGET)'"
 	@echo "Bundle ready: $(DIST_DIR)/$(APP_NAME).deskapp"
@@ -109,11 +118,20 @@ $(RES_STAMP): $(RES_FILES) | $(BUNDLE) $(BUILD_DIR)
 	cp -R $(RES_DIR) $(BUNDLE)/resources
 	touch $@
 
+# Re-copy preferences whenever any file in preferences/ changes
+$(PREFS_STAMP): $(PREFS_FILES) | $(BUNDLE) $(BUILD_DIR)
+	rm -rf $(BUNDLE)/preferences
+	cp -R $(PREFS_DIR) $(BUNDLE)/preferences
+	touch $@
+
 # ---- convenience -----------------------------------------------------------
 
 # The app finds its icons via paths relative to the bundle, so run from inside it.
 run: bundle
 	cd $(BUNDLE) && ./$(TARGET)
+
+run-desktop: bundle
+	cd $(BUNDLE) && ./$(TARGET) --desktop
 
 debug: CFLAGS := -O0 -g3 -fsanitize=address,undefined -std=gnu11 -Wall -Wextra -Wno-unused-parameter
 debug: LDFLAGS += -fsanitize=address,undefined
@@ -127,7 +145,7 @@ install: bundle
 # NOTE: BUILD_DIR and DIST_DIR point at the source tree / project root, so
 # clean must remove only the files we generate - never whole directories.
 clean:
-	rm -f $(OBJS) $(DEPS) $(BUILD_DIR)/$(TARGET) $(RES_STAMP)
+	rm -f $(OBJS) $(DEPS) $(BUILD_DIR)/$(TARGET) $(RES_STAMP) $(PREFS_STAMP)
 	rm -rf $(BUNDLE)
 
 -include $(DEPS)

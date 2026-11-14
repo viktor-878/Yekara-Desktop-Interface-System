@@ -1,0 +1,114 @@
+.
+├── app.metadata
+├── cabinet
+│   ├── Data
+│   │   └── cabinet.pxmap
+│   ├── icon.meta
+│   └── palette.opal
+├── cabinet.gzi
+├── File Cabinet.deskapp
+│   ├── app.metadata
+│   ├── filecabinet
+│   └── resources
+│       ├── cabinet.gzi
+│       ├── folder.gzi
+│       └── misc.gzi
+├── folder
+│   ├── Data
+│   │   ├── folder_big.pxmap
+│   │   ├── folder.pxmap
+│   │   └── folder_up.pxmap
+│   ├── folder_extended.opal
+│   ├── folder.opal
+│   └── icon.meta
+├── folder.gzi
+├── Makefile
+├── misc
+│   ├── computer.opal
+│   ├── Data
+│   │   ├── computer.pxmap
+│   │   └── file.pxmap
+│   ├── file.opal
+│   └── icon.meta
+├── misc.gzi
+├── preferences
+│   └── desktop.entry
+├── resources
+│   ├── cabinet.gzi
+│   ├── folder.gzi
+│   └── misc.gzi
+├── src
+│   ├── actions.c
+│   ├── actions.d
+│   ├── actions.h
+│   ├── actions.o
+│   ├── callbacks.c
+│   ├── callbacks.d
+│   ├── callbacks.h
+│   ├── callbacks.o
+│   ├── config.h
+│   ├── deskapp.c
+│   ├── deskapp.d
+│   ├── deskapp.h
+│   ├── deskapp.o
+│   ├── desktop.c
+│   ├── desktop.d
+│   ├── desktop.h
+│   ├── desktop.o
+│   ├── dialogs.c
+│   ├── dialogs.d
+│   ├── dialogs.h
+│   ├── dialogs.o
+│   ├── entries.c
+│   ├── entries.d
+│   ├── entries.h
+│   ├── entries.o
+│   ├── filecabinet
+│   ├── fsops.c
+│   ├── fsops.d
+│   ├── fsops.h
+│   ├── fsops.o
+│   ├── icons.c
+│   ├── icons.d
+│   ├── icons.h
+│   ├── icons.o
+│   ├── labels.c
+│   ├── labels.d
+│   ├── labels.h
+│   ├── labels.o
+│   ├── launch.c
+│   ├── launch.d
+│   ├── launch.h
+│   ├── launch.o
+│   ├── main.c
+│   ├── main.d
+│   ├── main.o
+│   ├── menus.c
+│   ├── menus.d
+│   ├── menus.h
+│   ├── menus.o
+│   ├── nav.c
+│   ├── nav.d
+│   ├── nav.h
+│   ├── nav.o
+│   ├── resources.stamp
+│   ├── state.c
+│   ├── state.d
+│   ├── state.h
+│   ├── state.o
+│   ├── types.h
+│   ├── ui.c
+│   ├── ui.d
+│   ├── ui.h
+│   ├── ui.o
+│   ├── util.c
+│   ├── util.d
+│   ├── util.h
+│   ├── util.o
+│   ├── view.c
+│   ├── view.d
+│   ├── view.h
+│   └── view.o
+└── tree.text
+
+12 directories, 100 files
