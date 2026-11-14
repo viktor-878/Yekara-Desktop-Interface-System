@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include "yk/bundle.h"
 
@@ -29,8 +30,9 @@ int main(int argc, char **argv)
     exec_argv[argc - 1] = NULL;
 
     // ---------------------- Execute ----------------------
+    setenv("YK_BUNDLE_PATH", app.bundle_path, 1);
     execv(app.exec_path, exec_argv);
-
+    unsetenv("YK_BUNDLE_PATH");
     perror("execv");
     return 3;
 }
