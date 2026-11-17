@@ -11,6 +11,9 @@ cp YK_GLOBAL_ENVVARS /etc/profile.d/YK_VARS.sh
 install -d "$PREFIX/bin"
 
 install -m755 scripts/YKBackdrop "$PREFIX/bin"
+install -d /system
+install -d /system/resources # for splash.xpm
+cp ./splash.xpm /system/resources/splash.xpm
 
 # library
 cd libYekara

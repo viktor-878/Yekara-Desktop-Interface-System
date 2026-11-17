@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "yk/bundle.h"
+#include <limits.h>
+char lib_path[PATH_MAX];
 
 int main(int argc, char **argv)
 {
@@ -31,6 +33,9 @@ int main(int argc, char **argv)
 
     // ---------------------- Execute ----------------------
     setenv("YK_BUNDLE_PATH", app.bundle_path, 1);
+    snprintf(lib_path, sizeof(lib_path), "%s/lib", app.bundle_path);
+
+    setenv("LD_LIBRARY_PATH", lib_path, 1);
     execv(app.exec_path, exec_argv);
     unsetenv("YK_BUNDLE_PATH");
     perror("execv");

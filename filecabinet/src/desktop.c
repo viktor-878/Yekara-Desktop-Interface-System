@@ -4,9 +4,10 @@
  *
  * desktop.entry (YeKara entry format) layout:
  *
- *    [Desktop]                       <- optional, hand-edited, never rewritten
- *    Wallpaper=/path/to.xpm;
+ *    [Desktop]                       <- written by Desktop Preferences;
+ *    Wallpaper=/path/to.xpm;            unknown keys/comments are preserved
  *    Color=#008080;
+ *    Mode=Tile;                      <- Tile | Center
  *
  *    [Icons]                         <- owned by this program
  *    Icon=<name>:<x>:<y>;      <- name is %XX-escaped for ':' ';' '\' '%'
@@ -31,6 +32,8 @@
 #include <Xm/Xm.h>
 #include <Xm/Form.h>
 #include <Xm/Label.h>
+#include <Xm/LabelG.h>
+#include <Xm/SeparatoG.h>
 #include <Xm/Container.h>
 #include <Xm/IconG.h>
 #include <Xm/RowColumn.h>
@@ -41,6 +44,7 @@
 #include <yk/style.h>
 
 #include "desktop.h"
+#include "desktop_prefs.h"
 #include "config.h"
 #include "deskapp.h"
 #include "dialogs.h"
@@ -443,7 +447,7 @@ static void layout_icons(const char **names, int count, int *xs, int *ys)
     Screen *scr = XtScreen(toplevel_widget);
     int sw = WidthOfScreen(scr), sh = HeightOfScreen(scr);
 
-    /* Reserve 200 pixels at the bottom for the toolbox/iconified apps */
+    /* Reserve 80 pixels at the bottom for the toolbox/iconified apps */
     int reserved_bottom = 80;
     int usable_height = sh - reserved_bottom;
 
@@ -470,7 +474,7 @@ static void layout_icons(const char **names, int count, int *xs, int *ys)
         int x, y;
         if (!find_position(names[i], &x, &y))
             continue;
-        /* Allow off-screen or bottom-200px checks if placed manually by user */
+        /* Skip positions that are off-screen */
         if (x < 0 || y < 0 || x > sw - 20 || y > sh - 20)
             continue;
 
@@ -495,10 +499,9 @@ static void layout_icons(const char **names, int count, int *xs, int *ys)
             slot++;
 
         if (slot < nslots) {
-            int c = (int)(slot / (size_t)rows); // column index from the right (0 = rightmost)
-            int r = (int)(slot % (size_t)rows); // row index from the top
+            int c = (int)(slot / (size_t)rows); /* column from the right (0 = rightmost) */
+            int r = (int)(slot % (size_t)rows); /* row from the top */
 
-            /* Top-Right coordinate calculation */
             xs[i] = sw - DESKTOP_MARGIN - (c + 1) * DESKTOP_CELL_W;
             ys[i] = DESKTOP_MARGIN + r * DESKTOP_CELL_H;
             slot++;
@@ -731,86 +734,314 @@ static void computer_open_cb(Widget w, XtPointer client, XtPointer call)
     desktop_open_folder("/");
 }
 
+static void prefs_menu_cb(Widget w, XtPointer client, XtPointer call)
+{
+    desktop_prefs_dialog(toplevel_widget);
+}
+
 /* =========================================================================
-   WINDOW
+   APPEARANCE / PREFERENCES
    ========================================================================= */
 
-static void desktop_settings(char *wallpaper, size_t wn, char *color, size_t cn)
+static Pixmap wallpaper_pm = None;     /* currently installed wallpaper */
+
+static void expand_wallpaper(const char *in, char *out, size_t n)
+{
+    if (in[0] == '~' && in[1] == '/' && home_dir())
+        join_path(out, n, home_dir(), in + 2);
+    else
+        snprintf(out, n, "%s", in);
+}
+
+void desktop_prefs_load(DesktopPrefs *p)
 {
     char path[PATH_MAX * 2];
-    wallpaper[0] = color[0] = '\0';
 
-    /* Checks user config first, falls back to bundle preferences/desktop.entry */
+    memset(p, 0, sizeof(*p));
+
+    /* user config first, bundle default as fallback */
     if (prefs_read_file(path, sizeof(path))) {
         EntryDocument *doc = parse_entry_file(path);
         if (doc) {
-            snprintf(wallpaper, wn, "%s", get_entry_string(doc, "Desktop", "Wallpaper", ""));
-            snprintf(color,    cn, "%s", get_entry_string(doc, "Desktop", "Color", ""));
+            snprintf(p->wallpaper, sizeof(p->wallpaper), "%s",
+                     get_entry_string(doc, "Desktop", "Wallpaper", ""));
+            snprintf(p->color, sizeof(p->color), "%s",
+                     get_entry_string(doc, "Desktop", "Color", ""));
+            snprintf(p->mode, sizeof(p->mode), "%s",
+                     get_entry_string(doc, "Desktop", "Mode", "Tile"));
             free_entry_document(doc);
         }
     }
 
-    if (color[0] == '\0') {
-        snprintf(color, cn, "%s", "#4682B4");
-    }
-
-    if (wallpaper[0] == '~' && wallpaper[1] == '/' && home_dir()) {
-        char tmp[PATH_MAX * 2];
-        join_path(tmp, sizeof(tmp), home_dir(), wallpaper + 2);
-        snprintf(wallpaper, wn, "%s", tmp);
-    }
+    if (p->color[0] == '\0')
+        snprintf(p->color, sizeof(p->color), "%s", "#4682B4");
+    if (strcmp(p->mode, "Center") != 0)
+        snprintf(p->mode, sizeof(p->mode), "%s", "Tile");
 }
 
-static void apply_appearance(Widget form, Widget container)
-{
-    char wallpaper[PATH_MAX * 2], color[64];
-    desktop_settings(wallpaper, sizeof(wallpaper), color, sizeof(color));
+/* ---- writing the [Desktop] section ------------------------------------ */
 
-    /* 1. Set Motif widget resources on both form and container */
-    XtVaSetValues(form,
-        XtVaTypedArg, XmNbackground, XmRString, color, (int)strlen(color) + 1,
+static void sappend_line(char **buf, size_t *len, const char *line)
+{
+    size_t l = strlen(line);
+    int need_nl = (l == 0 || line[l - 1] != '\n');
+    char *g = realloc(*buf, *len + l + (need_nl ? 1 : 0) + 1);
+
+    if (!g)
+        return;
+    *buf = g;
+    memcpy(*buf + *len, line, l);
+    *len += l;
+    if (need_nl)
+        (*buf)[(*len)++] = '\n';
+    (*buf)[*len] = '\0';
+}
+
+static int line_has_key(const char *line, const char *key)
+{
+    size_t k = strlen(key);
+
+    while (isspace((unsigned char)*line))
+        line++;
+    if (strncmp(line, key, k) != 0)
+        return 0;
+    line += k;
+    while (*line == ' ' || *line == '\t')
+        line++;
+    return *line == '=';
+}
+
+static int line_is_blank(const char *line)
+{
+    while (*line) {
+        if (!isspace((unsigned char)*line))
+            return 0;
+        line++;
+    }
+    return 1;
+}
+
+/* Rewrites [Desktop], keeping the preamble, unknown keys in [Desktop],
+ * and every other section (including [Icons]) untouched. */
+static Boolean save_desktop_section(const DesktopPrefs *p)
+{
+    char path[PATH_MAX * 2], dir[PATH_MAX * 2], tmp[PATH_MAX * 2 + 8];
+    char *pre = NULL, *dother = NULL, *rest = NULL;
+    size_t npre = 0, nd = 0, nr = 0;
+
+    if (!prefs_file(path, sizeof(path)))
+        return False;
+
+    snprintf(dir, sizeof(dir), "%s", path);
+    char *slash = strrchr(dir, '/');
+    if (slash)
+        *slash = '\0';
+    if (mkdir_p(dir, 0755) != 0)
+        return False;
+
+    FILE *in = fopen(path, "r");
+    if (in) {
+        char  *line = NULL;
+        size_t cap = 0;
+        int    state = -1;          /* -1 preamble, 0 other, 1 [Desktop] */
+
+        while (getline(&line, &cap, in) != -1) {
+            int is_hdr = 0, is_desk = 0;
+            char *copy = strdup(line);
+
+            if (copy) {
+                char *h = section_header(copy);
+                if (h) {
+                    is_hdr = 1;
+                    is_desk = (strcmp(h, "Desktop") == 0);
+                }
+                free(copy);
+            }
+
+            if (is_hdr) {
+                state = is_desk ? 1 : 0;
+                if (!is_desk)
+                    sappend_line(&rest, &nr, line);
+                continue;
+            }
+
+            if (state == -1)
+                sappend_line(&pre, &npre, line);
+            else if (state == 0)
+                sappend_line(&rest, &nr, line);
+            else if (!line_is_blank(line) &&
+                     !line_has_key(line, "Wallpaper") &&
+                     !line_has_key(line, "Color") &&
+                     !line_has_key(line, "Mode"))
+                sappend_line(&dother, &nd, line);
+        }
+        free(line);
+        fclose(in);
+    }
+
+    snprintf(tmp, sizeof(tmp), "%s.tmp", path);
+    FILE *out = fopen(tmp, "w");
+    if (!out) {
+        free(pre); free(dother); free(rest);
+        return False;
+    }
+
+    if (pre && *pre) {
+        fputs(pre, out);
+        fputc('\n', out);
+    }
+    fputs("[Desktop]\n", out);
+    if (p->wallpaper[0])
+        fprintf(out, "Wallpaper=%s;\n", p->wallpaper);
+    fprintf(out, "Color=%s;\n", p->color);
+    fprintf(out, "Mode=%s;\n", p->mode);
+    if (dother)
+        fputs(dother, out);
+    if (rest && *rest) {
+        fputc('\n', out);
+        fputs(rest, out);
+    }
+
+    free(pre); free(dother); free(rest);
+
+    if (fclose(out) != 0 || rename(tmp, path) != 0) {
+        unlink(tmp);
+        return False;
+    }
+    return True;
+}
+
+/* ---- applying ---------------------------------------------------------- */
+
+/* Builds the wallpaper pixmap. *out == None means "no wallpaper". */
+static Boolean build_wallpaper(Widget w, const DesktopPrefs *p, unsigned long bg,
+                               Pixmap *out, char *err, size_t en)
+{
+    Display *dpy = XtDisplay(w);
+    Screen  *scr = XtScreen(w);
+    char     path[PATH_MAX * 2];
+    Pixmap   xpm = None;
+    XpmAttributes attr;
+
+    *out = None;
+    if (!p->wallpaper[0])
+        return True;
+
+    expand_wallpaper(p->wallpaper, path, sizeof(path));
+
+    memset(&attr, 0, sizeof(attr));
+    attr.valuemask = XpmSize;
+    int rc = XpmReadFileToPixmap(dpy, RootWindowOfScreen(scr), path,
+                                 &xpm, NULL, &attr);
+    if (rc != XpmSuccess) {
+        if (err)
+            snprintf(err, en, "Cannot load wallpaper \"%s\": %s",
+                     path, XpmGetErrorString(rc));
+        return False;
+    }
+
+    if (strcmp(p->mode, "Center") != 0) {      /* Tile: use as is */
+        XpmFreeAttributes(&attr);
+        *out = xpm;
+        return True;
+    }
+
+    int sw = WidthOfScreen(scr), sh = HeightOfScreen(scr);
+    Pixmap full = XCreatePixmap(dpy, RootWindowOfScreen(scr), sw, sh,
+                                DefaultDepthOfScreen(scr));
+    GC gc = XCreateGC(dpy, full, 0, NULL);
+
+    XSetForeground(dpy, gc, bg);
+    XFillRectangle(dpy, full, gc, 0, 0, sw, sh);
+
+    int iw = (int)attr.width, ih = (int)attr.height;
+    int x = (sw - iw) / 2, y = (sh - ih) / 2;
+    int sx = x < 0 ? -x : 0, sy = y < 0 ? -y : 0;
+    int dx = x < 0 ? 0 : x,  dy = y < 0 ? 0 : y;
+    int cw = iw - sx; if (cw > sw - dx) cw = sw - dx;
+    int ch = ih - sy; if (ch > sh - dy) ch = sh - dy;
+    if (cw > 0 && ch > 0)
+        XCopyArea(dpy, xpm, full, gc, sx, sy, cw, ch, dx, dy);
+
+    XFreeGC(dpy, gc);
+    XFreePixmap(dpy, xpm);
+    XpmFreeAttributes(&attr);
+    *out = full;
+    return True;
+}
+
+/* Applies without saving. Nothing is touched if the wallpaper fails. */
+static Boolean apply_prefs(const DesktopPrefs *p, char *err, size_t en)
+{
+    if (!desktop_form || !gridContainer) {
+        if (err) snprintf(err, en, "Desktop is not ready yet.");
+        return False;
+    }
+
+    Display *dpy = XtDisplay(gridContainer);
+    Window   win = XtIsRealized(gridContainer) ? XtWindow(gridContainer) : None;
+    XColor   c0, c1;
+    unsigned long bgpix = WhitePixelOfScreen(XtScreen(gridContainer));
+
+    if (XAllocNamedColor(dpy, DefaultColormap(dpy, DefaultScreen(dpy)),
+                         p->color, &c0, &c1))
+        bgpix = c0.pixel;
+
+    Pixmap pm = None;
+    if (!build_wallpaper(gridContainer, p, bgpix, &pm, err, en))
+        return False;
+
+    XtVaSetValues(desktop_form,
+        XtVaTypedArg, XmNbackground, XmRString, p->color, (int)strlen(p->color) + 1,
         XtVaTypedArg, XmNforeground, XmRString, DESKTOP_TEXT_COLOR,
                       (int)strlen(DESKTOP_TEXT_COLOR) + 1,
         NULL);
 
-    XtVaSetValues(container,
-        XtVaTypedArg, XmNbackground, XmRString, color, (int)strlen(color) + 1,
-        NULL);
-
-    Display *dpy = XtDisplay(container);
-    Window win = XtIsRealized(container) ? XtWindow(container) : None;
-    Screen *scr = XtScreen(container);
-
-    /* 2. Set raw X11 window background color on the container window so it paints immediately */
-    if (color[0] && win != None) {
-        XColor c0, c1;
-        if (XAllocNamedColor(dpy, DefaultColormap(dpy, DefaultScreen(dpy)), color, &c0, &c1)) {
-            XSetWindowBackground(dpy, win, c0.pixel);
-        }
+    /* Order matters: setting XmNbackground resets the background pixmap. */
+    if (pm != None) {
+        XtVaSetValues(gridContainer,
+            XtVaTypedArg, XmNbackground, XmRString, p->color,
+                          (int)strlen(p->color) + 1,
+            NULL);
+        XtVaSetValues(gridContainer, XmNbackgroundPixmap, pm, NULL);
+        if (win != None)
+            XSetWindowBackgroundPixmap(dpy, win, pm);
+    } else {
+        XtVaSetValues(gridContainer, XmNbackgroundPixmap, XmUNSPECIFIED_PIXMAP, NULL);
+        XtVaSetValues(gridContainer,
+            XtVaTypedArg, XmNbackground, XmRString, p->color,
+                          (int)strlen(p->color) + 1,
+            NULL);
+        if (win != None)
+            XSetWindowBackground(dpy, win, bgpix);
     }
 
-    /* 3. Load and set XPM wallpaper on both Motif and the raw X11 window of the container */
-    if (wallpaper[0]) {
-        Pixmap pm = None;
-        int rc = XpmReadFileToPixmap(dpy, RootWindowOfScreen(scr),
-                                     wallpaper, &pm, NULL, NULL);
-        if (rc == XpmSuccess) {
-            XtVaSetValues(container, XmNbackgroundPixmap, pm, NULL);
-            if (win != None) {
-                XSetWindowBackgroundPixmap(dpy, win, pm);
-            }
-        } else {
-            fprintf(stderr, "desktop: cannot load wallpaper \"%s\" (%s)\n",
-                    wallpaper, XpmGetErrorString(rc));
-        }
-    }
+    if (wallpaper_pm != None)
+        XFreePixmap(dpy, wallpaper_pm);
+    wallpaper_pm = pm;
 
-    /* 4. Force X11 to clear and redraw the window background instantly */
     if (win != None) {
-        XClearWindow(dpy, win);
+        XClearArea(dpy, win, 0, 0, 0, 0, True);   /* expose -> icons repaint */
         XFlush(dpy);
     }
+    return True;
 }
+
+Boolean desktop_prefs_apply(const DesktopPrefs *p, char *err, size_t en)
+{
+    if (!apply_prefs(p, err, en))
+        return False;
+    if (!save_desktop_section(p)) {
+        if (err)
+            snprintf(err, en, "Applied, but could not save the settings file.");
+        return False;
+    }
+    return True;
+}
+
+/* =========================================================================
+   WINDOW
+   ========================================================================= */
 
 void desktop_build_ui(Widget toplevel)
 {
@@ -865,7 +1096,21 @@ void desktop_build_ui(Widget toplevel)
 
     create_popup_menus(desktop_form);
 
+    /* Backdrop menu: add Desktop Preferences... */
+    if (canvas_popup_menu_w) {
+        XtVaCreateManagedWidget("prefsSep", xmSeparatorGadgetClass,
+                                canvas_popup_menu_w, NULL);
+        Widget pb = XtVaCreateManagedWidget("Desktop Preferences...",
+                                            xmPushButtonWidgetClass,
+                                            canvas_popup_menu_w, NULL);
+        XtAddCallback(pb, XmNactivateCallback, prefs_menu_cb, NULL);
+    }
+
+    /* "My Computer" popup, CDE style: title, separator, Open */
     computer_popup = XmCreatePopupMenu(desktop_form, "computerPopupMenu", NULL, 0);
+    XtVaCreateManagedWidget("Workspace Object", xmLabelGadgetClass,
+                            computer_popup, NULL);
+    XtVaCreateManagedWidget("sep", xmSeparatorGadgetClass, computer_popup, NULL);
     Widget open = XtVaCreateManagedWidget("Open", xmPushButtonWidgetClass,
                                           computer_popup, NULL);
     XtAddCallback(open, XmNactivateCallback, computer_open_cb, NULL);
@@ -884,8 +1129,18 @@ void desktop_realize(Widget toplevel)
     };
     XSetClassHint(dpy, win, &class_hint);
 
-    /* Apply appearance to both the form and gridContainer now that they are realized */
-    apply_appearance(desktop_form, gridContainer);
+    /* Apply saved appearance now that the widgets are realized */
+    {
+        DesktopPrefs p;
+        char err[PATH_MAX * 2 + 64];
+
+        desktop_prefs_load(&p);
+        if (!apply_prefs(&p, err, sizeof(err))) {
+            fprintf(stderr, "desktop: %s\n", err);
+            p.wallpaper[0] = '\0';              /* fall back to plain color */
+            apply_prefs(&p, err, sizeof(err));
+        }
+    }
 
     XtMapWidget(toplevel);
     XLowerWindow(dpy, win);

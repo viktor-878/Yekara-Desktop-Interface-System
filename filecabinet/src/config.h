@@ -38,7 +38,7 @@
 #define DESKTOP_COLOR_ENV      "YK_DESKTOP_COLOR"  /* background when no wallp. */
 #define DESKTOP_COLOR_DEFAULT  "#008080"
 #define DESKTOP_TEXT_COLOR     "white"
-#define DESKTOP_ICON_SHADOW    2                   /* bevel around each icon    */
+#define DESKTOP_ICON_SHADOW    1                   /* bevel around each icon    */
 #define DESKTOP_MARGIN         12
 #define DESKTOP_CELL_W         (ICON_VIEW_ITEM_WIDTH  + ICON_VIEW_SPACING)
 #define DESKTOP_CELL_H         (ICON_VIEW_ITEM_HEIGHT + ICON_VIEW_SPACING)
