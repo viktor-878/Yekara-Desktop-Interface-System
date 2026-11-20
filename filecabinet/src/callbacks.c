@@ -3,6 +3,7 @@
 #include <Xm/Xm.h>
 #include <Xm/Container.h>
 #include <Xm/IconG.h>
+#include <Xm/RowColumn.h>
 
 #include "callbacks.h"
 #include "entries.h"
@@ -34,30 +35,50 @@ void container_default_action_cb(Widget w, XtPointer client, XtPointer call)
         activate_item(nm);
 }
 
-void container_popup_cb(Widget w, XtPointer client, XtPointer call)
+/*
+ * Right-click on the file grid.
+ *
+ * Motif's automatic popup posting (XmNpopupHandlerCallback) only works when
+ * the menu was created on the widget that receives the click.  Our container
+ * lives inside a ScrolledWindow while the menus hang off the main form, so
+ * the callback never ran.  We post the menus ourselves instead; the menus
+ * are created with XmNpopupEnabled = XmPOPUP_DISABLED (see menus.c).
+ */
+void container_btn_handler(Widget w, XtPointer client, XEvent *ev, Boolean *cont)
 {
-    XmPopupHandlerCallbackStruct *cbs = (XmPopupHandlerCallbackStruct *)call;
-    Widget target = cbs->target;
+    Widget target, menu;
+
+    (void)client;
+    (void)cont;
+
+    if (ev->type != ButtonPress || ev->xbutton.button != Button3)
+        return;
+
+    target = XmObjectAtPoint(w, (Position)ev->xbutton.x, (Position)ev->xbutton.y);
 
     if (target && target != w && XmIsIconGadget(target)) {
         Widget sel[1];
         sel[0] = target;
 
-        XtVaSetValues(gridContainer,
+        XtVaSetValues(w,
                       XmNselectedObjects, sel,
                       XmNselectedObjectCount, 1,
                       NULL);
 
         entry_name_of(target, selected_node_name, sizeof(selected_node_name));
-        cbs->menuToPost = item_popup_menu;
+        menu = item_popup_menu;
     } else {
-        XtVaSetValues(gridContainer, XmNselectedObjectCount, 0, NULL);
+        XtVaSetValues(w, XmNselectedObjectCount, 0, NULL);
         selected_node_name[0] = '\0';
-        cbs->menuToPost = canvas_popup_menu_w;
+        menu = canvas_popup_menu_w;
     }
 
     update_status_bar();
-    cbs->postIt = True;
+
+    if (menu) {
+        XmMenuPosition(menu, &ev->xbutton);
+        XtManageChild(menu);
+    }
 }
 
 void breadcrumb_select_cb(Widget w, XtPointer client, XtPointer call)

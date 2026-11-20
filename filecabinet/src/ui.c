@@ -124,7 +124,8 @@ static void create_file_container(Widget parent, Widget top, Widget bottom)
 
     XtAddCallback(gridContainer, XmNselectionCallback,      container_select_cb,         NULL);
     XtAddCallback(gridContainer, XmNdefaultActionCallback,  container_default_action_cb, NULL);
-    XtAddCallback(gridContainer, XmNpopupHandlerCallback,   container_popup_cb,          NULL);
+    XtAddEventHandler(gridContainer, ButtonPressMask, False,
+                      container_btn_handler, NULL);
     XtManageChild(gridContainer);
 
     /* Reflow icons when the viewport resizes */
@@ -146,5 +147,5 @@ void build_main_ui(Widget toplevel)
     Widget statusForm    = create_status_bar(mainMasterForm);
 
     create_file_container(mainMasterForm, urlOuterForm, statusForm);
-    create_popup_menus(mainMasterForm);
+    create_popup_menus(gridContainer);
 }

@@ -42,7 +42,7 @@
 
 #include <yk/entry.h>
 #include <yk/style.h>
-
+#include "callbacks.h"
 #include "desktop.h"
 #include "desktop_prefs.h"
 #include "config.h"
@@ -699,10 +699,17 @@ static void desktop_default_action_cb(Widget w, XtPointer client, XtPointer call
         desktop_activate(nm);
 }
 
-static void desktop_popup_cb(Widget w, XtPointer client, XtPointer call)
+static void desktop_btn_handler(Widget w, XtPointer client, XEvent *ev, Boolean *cont)
 {
-    XmPopupHandlerCallbackStruct *cbs = (XmPopupHandlerCallbackStruct *)call;
-    Widget target = cbs->target;
+    Widget target, menu;
+
+    (void)client;
+    (void)cont;
+
+    if (ev->type != ButtonPress || ev->xbutton.button != Button3)
+        return;
+
+    target = XmObjectAtPoint(w, (Position)ev->xbutton.x, (Position)ev->xbutton.y);
 
     if (target && target != w && XmIsIconGadget(target)) {
         char nm[256];
@@ -715,18 +722,21 @@ static void desktop_popup_cb(Widget w, XtPointer client, XtPointer call)
         entry_name_of(target, nm, sizeof(nm));
         if (strcmp(nm, DESKTOP_COMPUTER_ID) == 0) {
             selected_node_name[0] = '\0';
-            cbs->menuToPost = computer_popup;
+            menu = computer_popup;
         } else {
             snprintf(selected_node_name, sizeof(selected_node_name), "%s", nm);
-            cbs->menuToPost = item_popup_menu;
+            menu = item_popup_menu;
         }
     } else {
         XtVaSetValues(gridContainer, XmNselectedObjectCount, 0, NULL);
         selected_node_name[0] = '\0';
-        cbs->menuToPost = canvas_popup_menu_w;
+        menu = canvas_popup_menu_w;
     }
 
-    cbs->postIt = True;
+    if (menu) {
+        XmMenuPosition(menu, &ev->xbutton);
+        XtManageChild(menu);
+    }
 }
 
 static void computer_open_cb(Widget w, XtPointer client, XtPointer call)
@@ -1091,7 +1101,8 @@ void desktop_build_ui(Widget toplevel)
 
     XtAddCallback(gridContainer, XmNselectionCallback,       desktop_select_cb,          NULL);
     XtAddCallback(gridContainer, XmNdefaultActionCallback, desktop_default_action_cb, NULL);
-    XtAddCallback(gridContainer, XmNpopupHandlerCallback,   desktop_popup_cb,          NULL);
+    XtAddEventHandler(gridContainer, ButtonPressMask, False,
+                      desktop_btn_handler, NULL);
     XtManageChild(gridContainer);
 
     create_popup_menus(desktop_form);
@@ -1114,6 +1125,7 @@ void desktop_build_ui(Widget toplevel)
     Widget open = XtVaCreateManagedWidget("Open", xmPushButtonWidgetClass,
                                           computer_popup, NULL);
     XtAddCallback(open, XmNactivateCallback, computer_open_cb, NULL);
+    XtVaSetValues(computer_popup, XmNpopupEnabled, XmPOPUP_DISABLED, NULL);
 }
 
 void desktop_realize(Widget toplevel)

@@ -114,6 +114,9 @@ void create_popup_menus(Widget parent)
     XtAddCallback(mDel,      XmNactivateCallback, context_menu_cb, (XtPointer)"delete");
     XtAddCallback(mProps,    XmNactivateCallback, context_menu_cb, (XtPointer)"properties");
 
+    /* We post these ourselves from container_btn_handler(). */
+    XtVaSetValues(item_popup_menu, XmNpopupEnabled, XmPOPUP_DISABLED, NULL);
+
     /* Context menu for empty canvas */
     canvas_popup_menu_w = XmCreatePopupMenu(parent, "canvasPopupMenu", NULL, 0);
 
@@ -125,4 +128,6 @@ void create_popup_menus(Widget parent)
     XtAddCallback(mPaste,     XmNactivateCallback, canvas_menu_cb, NULL);
     XtAddCallback(mNewFolder, XmNactivateCallback, new_folder_cb,  NULL);
     XtAddCallback(mRefresh,   XmNactivateCallback, refresh_cb,     NULL);
+
+    XtVaSetValues(canvas_popup_menu_w, XmNpopupEnabled, XmPOPUP_DISABLED, NULL);
 }
