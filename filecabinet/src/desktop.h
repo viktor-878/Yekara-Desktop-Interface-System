@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <Xm/Xm.h>
+#include "desktop_prefs.h"
 
 /*
  * Desktop window (filecabinet --desktop).
@@ -18,10 +19,13 @@
  * context menus keep working unchanged.
  */
 
+#define YK_APPLY_DESKTOP_PREFS "_YEKARA_APPLY_DESKTOP_PREFS"
+#define YK_DESKTOP_WINDOW     "_YEKARA_DESKTOP_WINDOW"
+
 /* Resolves (and creates) the desktop folder into out. 0 on success; on
  * failure prints a message to stderr and returns -1. */
 int  desktop_resolve_dir(char *out, size_t n);
-
+Boolean desktop_prefs_save(const DesktopPrefs *p);
 /* Builds the borderless screen-sized window contents under `toplevel` and
  * sets gridContainer. Call before init_icons() and desktop_render(). */
 void desktop_build_ui(Widget toplevel);

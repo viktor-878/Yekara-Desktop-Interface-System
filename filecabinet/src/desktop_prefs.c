@@ -42,7 +42,7 @@
 #include <X11/Xlib.h>
 #include <X11/Shell.h>
 #include <X11/xpm.h>
-
+#include <X11/Xatom.h>
 #include <Xm/Xm.h>
 #include <Xm/AtomMgr.h>
 #include <Xm/Protocols.h>
@@ -656,16 +656,112 @@ static Boolean collect(DesktopPrefs *p, char *err, size_t en)
     return True;
 }
 
+static Boolean get_desktop_window(Widget widget, Window *out)
+{
+    Display *dpy = XtDisplay(widget);
+    Screen *scr = XtScreen(widget);
+    Window root = RootWindowOfScreen(scr);
+
+    Atom window_atom = XInternAtom(
+        dpy,
+        YK_DESKTOP_WINDOW,
+        False
+    );
+
+    Atom actual_type;
+    int actual_format;
+    unsigned long nitems, bytes_after;
+    unsigned char *data = NULL;
+
+    int status = XGetWindowProperty(
+        dpy,
+        root,
+        window_atom,
+        0,
+        1,
+        False,
+        XA_WINDOW,
+        &actual_type,
+        &actual_format,
+        &nitems,
+        &bytes_after,
+        &data
+    );
+
+    if (status != Success ||
+        actual_type != XA_WINDOW ||
+        actual_format != 32 ||
+        nitems != 1 ||
+        !data) {
+        if (data)
+            XFree(data);
+        return False;
+    }
+
+    *out = *(Window *)data;
+    XFree(data);
+
+    return True;
+}
+
+static Boolean send_apply_message(Widget widget, Window desktop_window)
+{
+    Display *dpy = XtDisplay(widget);
+
+    XEvent event = {0};
+
+    event.xclient.type = ClientMessage;
+    event.xclient.display = dpy;
+    event.xclient.window = desktop_window;
+    event.xclient.message_type = XInternAtom(
+        dpy,
+        YK_APPLY_DESKTOP_PREFS,
+        False
+    );
+    event.xclient.format = 32;
+
+    Status result = XSendEvent(
+        dpy,
+        desktop_window,
+        False,
+        NoEventMask,
+        &event
+    );
+
+    XFlush(dpy);
+
+    return result != 0;
+}
 static Boolean do_apply(void)
 {
     DesktopPrefs p;
     char err[PATH_MAX * 2 + 64];
+    Window desktop_window;
 
-    if (!collect(&p, err, sizeof(err)) ||
-        !desktop_prefs_apply(&p, err, sizeof(err))) {
+    /* 1. Collect dialog values */
+    if (!collect(&p, err, sizeof(err))) {
         show_error_dialog(shell, err);
         return False;
     }
+
+    /* 2. Check whether the desktop is running */
+    if (!get_desktop_window(shell, &desktop_window)) {
+        show_error_dialog(shell, "The YeKara desktop is not running.");
+        return False;
+    }
+
+    /* 3. Save the preferences */
+    if (!desktop_prefs_save(&p)) {
+        show_error_dialog(shell, "Could not save desktop preferences.");
+        return False;
+    }
+
+    /* 4. Tell the desktop to reload and apply them */
+    if (!send_apply_message(shell, desktop_window)) {
+        show_error_dialog(shell, "Could not communicate with the desktop.");
+        return False;
+    }
+
     return True;
 }
 

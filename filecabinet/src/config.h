@@ -50,4 +50,6 @@
                                                       no real file can be "/"   */
 #define DESKTOP_COMPUTER_LABEL "My Computer"
 
+#define YK_APPLY_DESKTOP_PREFS "_YEKARA_APPLY_DESKTOP_PREFS"
+
 #endif /* FM_CONFIG_H */

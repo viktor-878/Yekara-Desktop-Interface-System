@@ -686,6 +686,7 @@ static void desktop_select_cb(Widget w, XtPointer client, XtPointer call)
     }
 }
 
+
 static void desktop_default_action_cb(Widget w, XtPointer client, XtPointer call)
 {
     XmContainerSelectCallbackStruct *cbs = (XmContainerSelectCallbackStruct *)call;
@@ -789,6 +790,8 @@ void desktop_prefs_load(DesktopPrefs *p)
         snprintf(p->mode, sizeof(p->mode), "%s", "Tile");
 }
 
+
+
 /* ---- writing the [Desktop] section ------------------------------------ */
 
 static void sappend_line(char **buf, size_t *len, const char *line)
@@ -830,6 +833,8 @@ static int line_is_blank(const char *line)
     }
     return 1;
 }
+
+
 
 /* Rewrites [Desktop], keeping the preamble, unknown keys in [Desktop],
  * and every other section (including [Icons]) untouched. */
@@ -919,6 +924,11 @@ static Boolean save_desktop_section(const DesktopPrefs *p)
         return False;
     }
     return True;
+}
+
+Boolean desktop_prefs_save(const DesktopPrefs *p)
+{
+    return save_desktop_section(p);
 }
 
 /* ---- applying ---------------------------------------------------------- */
@@ -1053,6 +1063,36 @@ Boolean desktop_prefs_apply(const DesktopPrefs *p, char *err, size_t en)
    WINDOW
    ========================================================================= */
 
+static Atom apply_prefs_atom;
+
+static void desktop_event_handler(
+    Widget widget,
+    XtPointer client_data,
+    XEvent *event,
+    Boolean *cont
+) {
+    (void)widget;
+    (void)client_data;
+    (void)cont;
+
+    if (event->type != ClientMessage)
+        return;
+
+    if (event->xclient.message_type != apply_prefs_atom)
+        return;
+
+    DesktopPrefs prefs;
+    char err[PATH_MAX * 2 + 64] = {0};
+
+    desktop_prefs_load(&prefs);
+
+    if (!apply_prefs(&prefs, err, sizeof(err))) {
+        fprintf(stderr, "YeKara: %s\n", err);
+        return;
+    }
+
+    fprintf(stderr, "YeKara: Desktop preferences applied.\n");
+}
 void desktop_build_ui(Widget toplevel)
 {
     Screen *scr = XtScreen(toplevel);
@@ -1080,6 +1120,21 @@ void desktop_build_ui(Widget toplevel)
     desktop_form = XmCreateForm(toplevel, "desktopForm", NULL, 0);
 
     XtManageChild(desktop_form);
+    Display *dpy = XtDisplay(toplevel);
+
+apply_prefs_atom = XInternAtom(
+    dpy,
+    YK_APPLY_DESKTOP_PREFS,
+    False
+);
+
+XtAddEventHandler(
+    toplevel,
+    NoEventMask,
+    True,
+    desktop_event_handler,
+    NULL
+);
 
     n = 0;
     XtSetArg(args[n], XmNtopAttachment,    XmATTACH_FORM); n++;
@@ -1134,6 +1189,25 @@ void desktop_realize(Widget toplevel)
 
     XtRealizeWidget(toplevel);          /* Creates the X window */
     Window win = XtWindow(toplevel);
+    
+    Atom window_atom = XInternAtom(
+    dpy,
+    YK_DESKTOP_WINDOW,
+    False
+);
+
+XChangeProperty(
+    dpy,
+    RootWindowOfScreen(XtScreen(toplevel)),
+    window_atom,
+    XA_WINDOW,
+    32,
+    PropModeReplace,
+    (unsigned char *)&win,
+    1
+);
+
+XFlush(dpy);
 
     XClassHint class_hint = {
         .res_name  = "yekara-desktop",
@@ -1161,3 +1235,5 @@ void desktop_realize(Widget toplevel)
     XtAppAddTimeOut(XtWidgetToApplicationContext(toplevel),
                     DESKTOP_POLL_MS, tick_cb, NULL);
 }
+
+

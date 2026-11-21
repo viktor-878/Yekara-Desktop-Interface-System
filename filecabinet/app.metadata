@@ -1,3 +1,10 @@
 [Application Entry]
-ExecFile=filecabinet
-Icon=cabinet:cabinet
+ExecFile=filecabinet;
+Icon=cabinet:cabinet;
+
+[Preferences add Entry]
+Name="Backdrop Settings";
+Argument=desktop-prefs;
+Icon=; # nothing for now because control panel grid application isn't implemented yet
+
+
