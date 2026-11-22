@@ -49,6 +49,7 @@
 #include <X11/keysym.h>
 #include <X11/Xatom.h>
 #include <X11/cursorfont.h>
+#include <X11/Xproto.h>      /* X_GetProperty etc. */
 #include <X11/Xft/Xft.h>
 #include <fontconfig/fontconfig.h>
 
@@ -1564,6 +1565,23 @@ static void add_separator(Widget pane)
 }
 
 /* ---------- main ---------- */
+/* ---------- X error handling ----------
+ * Selection requestors (clipboard managers, apps that start/exit quickly)
+ * may destroy their window while Xt is still talking to it.  That yields
+ * a harmless BadWindow; don't let it kill the terminal. */
+static int (*prev_xerror)(Display *, XErrorEvent *);
+
+static int mterm_xerror(Display *d, XErrorEvent *e)
+{
+    if (e->error_code == BadWindow &&
+        (e->request_code == X_GetProperty    ||
+         e->request_code == X_ChangeProperty ||
+         e->request_code == X_DeleteProperty ||
+         e->request_code == X_SendEvent      ||
+         e->request_code == X_ChangeWindowAttributes))   /* XSelectInput */
+        return 0;                                   /* requestor vanished */
+    return prev_xerror ? prev_xerror(d, e) : 0;
+}
 int main(int argc, char **argv)
 {
     /* our own options, removed from argv before the toolkit sees them */
@@ -1586,6 +1604,7 @@ int main(int argc, char **argv)
     }
 
     toplevel = YkInitWindow(&app, "mterm", &argc, argv);
+    prev_xerror = XSetErrorHandler(mterm_xerror);
     XtVaSetValues(toplevel, XmNtitle, "Command Center", NULL);
     XtVaSetValues(toplevel, XmNwidth, 720, XmNheight, 480, NULL);
     dpy = XtDisplay(toplevel);
