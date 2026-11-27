@@ -4,6 +4,8 @@ O YeKara é uma interface de desktop simples e experimental para Linux e X11, ba
 
 O projeto inclui configurações personalizadas, aplicativos leves em Motif/X11, utilitários, ícones, cursores e temas.
 
+a lot of stuff is vibe-coded because i don't know C lmao
+
 Atualmente, o projeto está em uma fase inicial de desenvolvimento.
 =======
 ## Comunidade
